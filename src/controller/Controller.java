@@ -4,16 +4,25 @@ import javax.xml.parsers.*;
 import org.xml.sax.*;
 import org.xml.sax.helpers.*;
 
+import com.opencsv.CSVParser;
+import com.opencsv.CSVParserBuilder;
+import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
+
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.LocalTime;
 import java.util.Iterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-
 import model.data_structures.ArregloDinamico;
 import model.data_structures.Bag;
 import model.data_structures.Cola;
@@ -22,6 +31,7 @@ import model.data_structures.Graph;
 import model.data_structures.JSONFile;
 import model.data_structures.LinearProbing;
 import model.data_structures.Vertex;
+import model.vo.VOMovingViolations;
 
 import java.util.*;
 
@@ -29,6 +39,63 @@ import view.MovingViolationsManagerView;
 
 public class Controller extends DefaultHandler{
 
+	
+	public static final String rutaEnero = "./data/January_wgs84_corregido.csv";
+
+	/**
+	 * Ruta de archivo CSV Febrero.
+	 */
+	public static final String rutaFebrero = "./data/February_wgs84.csv";
+
+	/**
+	 * Ruta de archivo CSV Marzo.
+	 */
+	public static final String rutaMarzo = "./data/March_wgs84.csv";
+
+	/**
+	 * Ruta de archivo CSV Abril.
+	 */
+	public static final String rutaAbril = "./data/Abril_wgs84.csv";
+
+	/**
+	 * Ruta de archivo CSV Mayo.
+	 */
+	public static final String rutaMayo = "./data/May_wgs84.csv";
+	/**
+	 * Ruta de archivo CSV Junio.
+	 */
+	public static final String rutaJunio = "./data/June_wgs84.csv";
+	/**
+	 * Ruta de archivo CSV Julio.
+	 */
+	public static final String rutaJulio = "./data/July_wgs84.csv";
+	/**
+	 * Ruta de archivo CSV Agosto.
+	 */
+	public static final String rutaAgosto = "./data/August_wgs84.csv";
+	/**
+	 * Ruta de archivo CSV Septiembre.
+	 */
+	public static final String rutaSeptiembre = "./data/September_wgs84.csv";
+	/**
+	 * Ruta de archivo CSV Octubre.
+	 */
+	public static final String rutaOctubre = "./data/October_wgs84.csv";
+	/**
+	 * Ruta de archivo CSV Noviembre.
+	 */
+	public static final String rutaNoviembre = "./data/November_wgs84.csv";
+	/**
+	 * Ruta de archivo CSV Diciembre.
+	 */
+	public static final String rutaDiciembre = "./data/December_wgs84.csv";
+	
+	private String[] sem1;
+	
+	private String[] sem2;
+	
+	private List<VOMovingViolations> arreglo;
+	
 	private MovingViolationsManagerView view;
 
 	private boolean empezo;
@@ -50,7 +117,7 @@ public class Controller extends DefaultHandler{
 
 	public Controller() throws Exception {
 
-
+		arreglo = new ArrayList<VOMovingViolations>();
 		view = new MovingViolationsManagerView();
 		grafo = new Graph<Long, String, Double>();		
 		grafo1 = new Graph<Long, String, Double>();		
@@ -91,6 +158,10 @@ public class Controller extends DefaultHandler{
 				cargarArcosJson();
 
 				break;
+			case 3:
+				System.out.println("Inserte cuál semestre desea cargar");
+				int param = sc.nextInt();
+				cargarInfracciones(param);
 			case 4:	
 				fin=true;
 				sc.close();
@@ -262,7 +333,7 @@ public class Controller extends DefaultHandler{
 	private void cargarVerticesJson() {
 		try {
 			JSONParser parser = new JSONParser();
-			JSONArray a = (JSONArray) parser.parse(new FileReader("./docs/vertices1.json"));
+			JSONArray a = (JSONArray) parser.parse(new FileReader("./data/vertices1.json"));
 			for (Object o : a)
 			{
 				JSONObject actual = (JSONObject) o;
@@ -359,7 +430,7 @@ public class Controller extends DefaultHandler{
 	private void cargarArcosJson() {
 		try {
 			JSONParser parser = new JSONParser();
-			JSONArray a = (JSONArray) parser.parse(new FileReader("./docs/arcos1.json"));
+			JSONArray a = (JSONArray) parser.parse(new FileReader("./data/arcos1.json"));
 			ArregloDinamico<Long> b = new ArregloDinamico<>(12);
 			for (Object o : a)
 			{
@@ -380,6 +451,180 @@ public class Controller extends DefaultHandler{
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+	}
+	private void cargarInfracciones(int numeroSemestre) {
+		sem1 = new String[6];
+		sem2 = new String[6];
+
+		int enero= 0;
+		int f=0;
+		int a =0;
+		int m =0;
+		int mayo =0;
+		int j =0;
+		int ju =0;
+		int ag = 0;
+		int s =0;
+		int o =0;
+		int n = 0;
+		int d = 0;
+
+		int contMes=0;
+		for(int i = 0; i<6;i++){
+			if(i == 0){
+				sem1[i] = rutaEnero;
+				sem2[i] = rutaJulio;
+			}
+			else if(i == 1){
+				sem1[i] = rutaFebrero;
+				sem2[i] = rutaAgosto;
+			}
+			else if(i == 2){
+				sem1[i] = rutaMarzo;
+				sem2[i] = rutaSeptiembre;
+			}
+			else if(i == 3){
+				sem1[i] = rutaAbril;
+				sem2[i] = rutaOctubre;
+			}
+			else if(i == 4){
+				sem1[i] = rutaMayo;
+				sem2[i] = rutaNoviembre;
+			}
+			else if(i == 5){
+				sem1[i] = rutaJunio;
+				sem2[i] = rutaDiciembre;
+			}
+		}
+		try{
+			if(numeroSemestre ==2){
+
+				for(int i = 0;i<sem2.length;i++){
+					contMes = 0;
+					String mes = sem2[i];
+					int latitud = -1;
+					int longitud = -1;
+					
+					if(i==10 || i==11 || i==12) {
+						latitud = 19;
+						longitud = 20; 
+					}
+					else {
+						latitud = 18;
+						longitud = 19;
+					}
+					CSVReader lector = new CSVReader(new FileReader(mes), ';');
+					String[] linea = lector.readNext();
+					while ((linea = lector.readNext()) != null) {
+						
+						String obID = linea[0];
+						String lat = linea[latitud];
+						String lon = linea[longitud];
+						VOMovingViolations vo = new VOMovingViolations(obID,lat, lon);
+						arreglo.add(vo);
+						contMes++;
+						if(i == 0){
+							ju=contMes;
+							
+						}
+						else if(i == 1){
+							ag=contMes;
+						}
+						else if(i == 2){
+							s=contMes;
+
+						}
+						else if(i == 3){
+							o=contMes;
+
+						}
+						else if(i == 4){
+							n=contMes;
+
+						}
+						else if(i == 5){
+							d=contMes;
+
+						}
+					}
+
+					lector.close();
+					System.out.println("Total de infracciones del semestre " + contMes);
+					System.out.println("Infracciones de: ");
+					System.out.println("Julio " + ju);
+					System.out.println("Agosto " + ag);
+					System.out.println("Septiembre " + s);
+					System.out.println("Octubre" + o);
+					System.out.println("Noviembre " + n);
+					System.out.println("Diciembre " + d);
+				}
+			}
+
+			else{
+				for(int i = 0;i<sem1.length;i++){
+					contMes = 0;
+					String mes = sem1[i];
+					int latitud = -1;
+					int longitud = -1;
+					
+					if(i==0) {
+						latitud = 17;
+						longitud = 18; 
+					}
+					else {
+						latitud = 18;
+						longitud = 19;
+					}
+					CSVReader lector = new CSVReader(new FileReader(mes), ';');
+				
+					String[] linea = lector.readNext();
+					while ((linea = lector.readNext()) != null) {
+
+						String obID = linea[1];
+						String lat = linea[latitud];
+						String lon = linea[longitud];
+						VOMovingViolations vo = new VOMovingViolations(obID,lat, lon);
+						arreglo.add(vo);	
+						contMes++;
+						if(i == 0){
+							enero=contMes;
+						}
+						else if(i == 1){
+							f=contMes;
+						}
+						else if(i == 2){
+							m=contMes;
+
+						}
+						else if(i == 3){
+							a=contMes;
+
+						}
+						else if(i == 4){
+							mayo=contMes;
+
+						}
+						else if(i == 5){
+							j=contMes;
+
+						}
+					}
+					System.out.println("Total de infracciones del semestre " + contMes);
+					System.out.println("Infracciones de: ");
+					System.out.println("Enero " + enero);
+					System.out.println("Febrero " + f);
+					System.out.println("Mazro " + m);
+					System.out.println("Abril " + a);
+					System.out.println("Mayo " + mayo);
+					System.out.println("Junio " + j);
+					lector.close();
+				}
+			}
+		}
+		catch (IOException e) {
+
 			e.printStackTrace();
 		}
 	}
