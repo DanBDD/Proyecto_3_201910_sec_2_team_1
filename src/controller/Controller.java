@@ -162,6 +162,7 @@ public class Controller extends DefaultHandler{
 				System.out.println("Inserte cuál semestre desea cargar");
 				int param = sc.nextInt();
 				cargarInfracciones(param);
+				break;
 			case 4:	
 				fin=true;
 				sc.close();
@@ -470,7 +471,7 @@ public class Controller extends DefaultHandler{
 		int o =0;
 		int n = 0;
 		int d = 0;
-
+		int totSem = 0;
 		int contMes=0;
 		for(int i = 0; i<6;i++){
 			if(i == 0){
@@ -524,6 +525,7 @@ public class Controller extends DefaultHandler{
 						String lon = linea[longitud];
 						VOMovingViolations vo = new VOMovingViolations(obID,lat, lon);
 						arreglo.add(vo);
+						totSem++;
 						contMes++;
 						if(i == 0){
 							ju=contMes;
@@ -551,7 +553,7 @@ public class Controller extends DefaultHandler{
 					}
 
 					lector.close();
-					System.out.println("Total de infracciones del semestre " + contMes);
+					System.out.println("Total de infracciones del semestre " + totSem);
 					System.out.println("Infracciones de: ");
 					System.out.println("Julio " + ju);
 					System.out.println("Agosto " + ag);
@@ -587,6 +589,7 @@ public class Controller extends DefaultHandler{
 						String lon = linea[longitud];
 						VOMovingViolations vo = new VOMovingViolations(obID,lat, lon);
 						arreglo.add(vo);	
+						totSem++;
 						contMes++;
 						if(i == 0){
 							enero=contMes;
@@ -611,7 +614,7 @@ public class Controller extends DefaultHandler{
 
 						}
 					}
-					System.out.println("Total de infracciones del semestre " + contMes);
+					System.out.println("Total de infracciones del semestre " + totSem);
 					System.out.println("Infracciones de: ");
 					System.out.println("Enero " + enero);
 					System.out.println("Febrero " + f);
