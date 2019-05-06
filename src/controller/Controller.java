@@ -31,7 +31,6 @@ import model.data_structures.Graph;
 import model.data_structures.JSONFile;
 import model.data_structures.LinearProbing;
 import model.data_structures.MaxColaPrioridad;
-import model.data_structures.MaxHeapCP;
 import model.data_structures.Vertex;
 import model.vo.VOMovingViolations;
 

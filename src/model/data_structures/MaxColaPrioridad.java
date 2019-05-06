@@ -2,10 +2,10 @@ package model.data_structures;
 
 import java.util.Iterator;
 
-public class MaxColaPrioridad <T extends Comparable<T>,D>implements ColaDePrioridad<T,D>{
+public class MaxColaPrioridad <T extends Comparable<T>,I>implements ColaDePrioridad<T,I>{
 
 	private int numElementos;
-	private Nodo<T,D> primerNodo;
+	private NodoMaxCola<T,I> primerNodo;
 
 	public MaxColaPrioridad()
 	{
@@ -14,9 +14,9 @@ public class MaxColaPrioridad <T extends Comparable<T>,D>implements ColaDePriori
 	}
 
 	@Override
-	public D delMax() {
+	public I delMax() {
 		T max=primerNodo.darElem();
-		D id= primerNodo.getId();
+		I id= primerNodo.getId();
 		primerNodo=primerNodo.darSiguiente();
 		numElementos--;
 		return id;
@@ -30,7 +30,7 @@ public class MaxColaPrioridad <T extends Comparable<T>,D>implements ColaDePriori
 		return numElementos==0;
 	}
 	@Override
-	public void agregar(T elemento, D id) {
+	public void agregar(T elemento, I id) {
 
 		boolean add = false;
 
@@ -41,7 +41,7 @@ public class MaxColaPrioridad <T extends Comparable<T>,D>implements ColaDePriori
 		else
 		{
 
-			Nodo<T,D> nuevo = new Nodo<T,D>(elemento,id);
+			Nodo<T,I> nuevo = new Nodo<T,I>(elemento,id);
 
 			if(primerNodo == null){
 				primerNodo = nuevo;
@@ -55,15 +55,15 @@ public class MaxColaPrioridad <T extends Comparable<T>,D>implements ColaDePriori
 					}
 					else{
 
-						Nodo<T,D> siguiente = primerNodo;
+						Nodo<T,I> siguiente = primerNodo;
 						primerNodo = nuevo;
 						nuevo.cambiarSiguiente(siguiente);
 						add =true;
 					}
 				}
 				else{
-					Nodo<T,D> actual=primerNodo;
-					Nodo<T,D> anterior = null;
+					Nodo<T,I> actual=primerNodo;
+					Nodo<T,I> anterior = null;
 					while(!add){
 						if(actual.darElem().compareTo(elemento) < 0){
 							if(actual.darSiguiente() == null){
@@ -77,7 +77,7 @@ public class MaxColaPrioridad <T extends Comparable<T>,D>implements ColaDePriori
 						}
 						else{
 							if(anterior == null){
-								Nodo<T,D>siguiente = primerNodo;
+								Nodo<T,I>siguiente = primerNodo;
 								primerNodo = nuevo;
 								nuevo.cambiarSiguiente(siguiente);
 								add = true;

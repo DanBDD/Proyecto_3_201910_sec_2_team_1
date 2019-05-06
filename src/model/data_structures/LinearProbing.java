@@ -129,9 +129,9 @@ public class LinearProbing<K extends Comparable <K>, V> implements IHash<K,V>{
 
 	@Override
 	public Iterator<K> keys() {
-		  Cola<K> queue = new Cola<K>();
+		  Cola queue = new Cola<>();
 	        for (int i = 0; i < m; i++)
-	            if (keys[i] != null) queue.enqueue(keys[i]);
+	            if (keys[i] != null) queue.enqueue(keys[i],null);
 	        return queue.iterator();
 	}
 }

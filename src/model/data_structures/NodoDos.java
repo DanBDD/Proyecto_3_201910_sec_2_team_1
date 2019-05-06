@@ -5,18 +5,20 @@ package model.data_structures;
  *
  * @param <T> Objeto a guardar en esta estructura
  */
-public class Nodo<T>{
+public class NodoDos<T,I>{
 
-	private Nodo<T> siguiente;
+	private NodoDos<T,I> siguiente;
 	
 	private T elemento;
+	private I id;
 	
-	public Nodo(T pElemento){
+	public NodoDos(T pElemento, I id){
 		elemento = pElemento;
+		this.setId(id);
 		siguiente = null;
 	}
 	
-	public void cambiarSiguiente(Nodo<T> nuevo){
+	public void cambiarSiguiente(Nodo<T,I> nuevo){
 		siguiente = nuevo;
 	}
 	
@@ -24,11 +26,19 @@ public class Nodo<T>{
 		return elemento;
 	}
 	
-	public Nodo<T> darSiguiente(){
+	public NodoDos<T,I> darSiguiente(){
 		return siguiente;
 	}
 	public void cambiarElemento(Comparable aux)
 	{
 		this.elemento = (T) aux;
+	}
+
+	public I getId() {
+		return id;
+	}
+
+	public void setId(I id) {
+		this.id = id;
 	}
 }
