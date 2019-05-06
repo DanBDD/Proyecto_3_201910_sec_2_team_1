@@ -385,6 +385,7 @@ public class Controller extends DefaultHandler{
 			if(lin.get(identificador).getId()!=0L) {
 				vertice = grafo.getV().get(identificador);
 				latitud = vertice.getLatitud();
+				
 				longitud = vertice.getLongitud();
 				infracciones = vertice.getCantidadInfracciones();
 				adentro = new JSONObject();
