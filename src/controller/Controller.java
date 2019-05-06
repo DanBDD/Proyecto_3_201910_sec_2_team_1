@@ -30,6 +30,8 @@ import model.data_structures.Edge;
 import model.data_structures.Graph;
 import model.data_structures.JSONFile;
 import model.data_structures.LinearProbing;
+import model.data_structures.MaxColaPrioridad;
+import model.data_structures.MaxHeapCP;
 import model.data_structures.Vertex;
 import model.vo.VOMovingViolations;
 
@@ -39,7 +41,7 @@ import view.MovingViolationsManagerView;
 
 public class Controller extends DefaultHandler{
 
-	
+
 	public static final String rutaEnero = "./data/January_wgs84_corregido.csv";
 
 	/**
@@ -89,13 +91,13 @@ public class Controller extends DefaultHandler{
 	 * Ruta de archivo CSV Diciembre.
 	 */
 	public static final String rutaDiciembre = "./data/December_wgs84.csv";
-	
+
 	private String[] sem1;
-	
+
 	private String[] sem2;
-	
-	private List<VOMovingViolations> arreglo;
-	
+
+	private ArregloDinamico<VOMovingViolations> arreglo;
+
 	private MovingViolationsManagerView view;
 
 	private boolean empezo;
@@ -117,7 +119,7 @@ public class Controller extends DefaultHandler{
 
 	public Controller() throws Exception {
 
-		arreglo = new ArrayList<VOMovingViolations>();
+		arreglo = new ArregloDinamico<VOMovingViolations>(100);
 		view = new MovingViolationsManagerView();
 		grafo = new Graph<Long, String, Double>();		
 		grafo1 = new Graph<Long, String, Double>();		
@@ -159,15 +161,41 @@ public class Controller extends DefaultHandler{
 
 				break;
 			case 3:
-				System.out.println("Inserte cuál semestre desea cargar");
+				System.out.println("Inserte cuï¿½l semestre desea cargar");
 				int param = sc.nextInt();
 				cargarInfracciones(param);
 				break;
-			case 4:	
+			case 4:
+				juntarVerticesInfracciones();
+			case 5:	
 				fin=true;
 				sc.close();
 				break;
 			}
+		}
+	}
+
+	private void juntarVerticesInfracciones() 
+	{
+		LinearProbing<Long, Vertex<Long, String, Double>> vertices = grafo.getV();
+		Iterator<Long> it = vertices.keys();
+
+		for (int i = 0; i < arreglo.darTamano(); i++) 
+		{
+			VOMovingViolations infraccion = arreglo.darElem(i);
+			Double lat= Double.parseDouble(infraccion.darLat());
+			Double lon= Double.parseDouble(infraccion.darLon());
+			MaxColaPrioridad<Double, Long> cola = new MaxColaPrioridad<>();
+			while(it.hasNext())
+			{
+				Long num= it.next();
+				Vertex<Long, String, Double> vertice = vertices.get(num);
+				Double lat2= Double.parseDouble(vertice.getLatitud());
+				Double lon2= Double.parseDouble(vertice.getLongitud());
+				cola.agregar(haversine(lat, lon, lat2, lon2), vertice.getId());
+			}
+			Long corto= cola.delMax();
+			vertices.get(corto).aumentarCantidadIngfracciones();
 		}
 	}
 
@@ -184,7 +212,7 @@ public class Controller extends DefaultHandler{
 			//			String info =  atts.getValue(1) + "|" + atts.getValue(2);
 			//			System.out.println(info.toString());
 			//			System.out.println(atts.getLength());
-			grafo.addVertex(Long.parseLong(atts.getValue(0)),  atts.getValue(1) + "|" + atts.getValue(2));
+			grafo.addVertex(Long.parseLong(atts.getValue(0)),  atts.getValue(1) + "|" + atts.getValue(2),0);
 			//			for(int n = 0; n < 3; n++) {
 			//				System.out.println(atts.getQName(n)+ ": " + atts.getValue(n));						
 			//			}
@@ -298,6 +326,7 @@ public class Controller extends DefaultHandler{
 		String latitud = null;
 		String longitud = null;
 		int c=0;
+		int infracciones=0;
 		Vertex<Long,String,Double> vertice = null;
 
 		while(it.hasNext()){
@@ -307,10 +336,12 @@ public class Controller extends DefaultHandler{
 				vertice = grafo.getV().get(identificador);
 				latitud = vertice.getLatitud();
 				longitud = vertice.getLongitud();
+				infracciones = vertice.getCantidadInfracciones();
 				adentro = new JSONObject();
 				adentro.put("lat", latitud );
 				adentro.put("lon", longitud);
 				adentro.put("id",identificador);
+				adentro.put("infracciones", infracciones);
 				//afuera
 				afuera = new JSONObject();
 				afuera.put("vertice", adentro);
@@ -342,8 +373,8 @@ public class Controller extends DefaultHandler{
 				Long id=  (Long) e.get("id");
 				String lat = (String) e.get("lat");
 				String lon=(String) e.get("lon");
-
-				grafo1.addVertex(id, lat+"|"+lon);
+				String infra= (String)e.get("infracciones");
+				grafo1.addVertex(id, lat+"|"+lon, Integer.parseInt(infra));
 				//				System.out.println(id);
 				//				System.out.println(lat);
 				//				System.out.println(lon);
@@ -507,7 +538,7 @@ public class Controller extends DefaultHandler{
 					String mes = sem2[i];
 					int latitud = -1;
 					int longitud = -1;
-					
+
 					if(i==10 || i==11 || i==12) {
 						latitud = 19;
 						longitud = 20; 
@@ -519,17 +550,17 @@ public class Controller extends DefaultHandler{
 					CSVReader lector = new CSVReader(new FileReader(mes), ';');
 					String[] linea = lector.readNext();
 					while ((linea = lector.readNext()) != null) {
-						
+
 						String obID = linea[0];
 						String lat = linea[latitud];
 						String lon = linea[longitud];
 						VOMovingViolations vo = new VOMovingViolations(obID,lat, lon);
-						arreglo.add(vo);
+						arreglo.agregar(vo);
 						totSem++;
 						contMes++;
 						if(i == 0){
 							ju=contMes;
-							
+
 						}
 						else if(i == 1){
 							ag=contMes;
@@ -570,7 +601,7 @@ public class Controller extends DefaultHandler{
 					String mes = sem1[i];
 					int latitud = -1;
 					int longitud = -1;
-					
+
 					if(i==0) {
 						latitud = 17;
 						longitud = 18; 
@@ -580,7 +611,7 @@ public class Controller extends DefaultHandler{
 						longitud = 19;
 					}
 					CSVReader lector = new CSVReader(new FileReader(mes), ';');
-				
+
 					String[] linea = lector.readNext();
 					while ((linea = lector.readNext()) != null) {
 
@@ -588,7 +619,7 @@ public class Controller extends DefaultHandler{
 						String lat = linea[latitud];
 						String lon = linea[longitud];
 						VOMovingViolations vo = new VOMovingViolations(obID,lat, lon);
-						arreglo.add(vo);	
+						arreglo.agregar(vo);	
 						totSem++;
 						contMes++;
 						if(i == 0){

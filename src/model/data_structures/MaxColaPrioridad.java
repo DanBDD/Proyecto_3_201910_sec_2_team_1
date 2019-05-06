@@ -2,10 +2,10 @@ package model.data_structures;
 
 import java.util.Iterator;
 
-public class MaxColaPrioridad <T extends Comparable<T>>implements ColaDePrioridad<T>{
+public class MaxColaPrioridad <T extends Comparable<T>,D>implements ColaDePrioridad<T,D>{
 
 	private int numElementos;
-	private Nodo<T> primerNodo;
+	private Nodo<T,D> primerNodo;
 
 	public MaxColaPrioridad()
 	{
@@ -14,11 +14,12 @@ public class MaxColaPrioridad <T extends Comparable<T>>implements ColaDePriorida
 	}
 
 	@Override
-	public T delMax() {
+	public D delMax() {
 		T max=primerNodo.darElem();
+		D id= primerNodo.getId();
 		primerNodo=primerNodo.darSiguiente();
 		numElementos--;
-		return max;
+		return id;
 	}
 	@Override
 	public T max() {
@@ -29,7 +30,7 @@ public class MaxColaPrioridad <T extends Comparable<T>>implements ColaDePriorida
 		return numElementos==0;
 	}
 	@Override
-	public void agregar(T elemento) {
+	public void agregar(T elemento, D id) {
 
 		boolean add = false;
 
@@ -40,7 +41,7 @@ public class MaxColaPrioridad <T extends Comparable<T>>implements ColaDePriorida
 		else
 		{
 
-			Nodo<T> nuevo = new Nodo<T>(elemento);
+			Nodo<T,D> nuevo = new Nodo<T,D>(elemento,id);
 
 			if(primerNodo == null){
 				primerNodo = nuevo;
@@ -48,23 +49,23 @@ public class MaxColaPrioridad <T extends Comparable<T>>implements ColaDePriorida
 			}
 			else{
 				if(primerNodo.darSiguiente() == null){
-					if(primerNodo.darElem().compareTo(elemento) > 0){
+					if(primerNodo.darElem().compareTo(elemento) < 0){
 						primerNodo.cambiarSiguiente(nuevo);
 						add =true;
 					}
 					else{
 
-						Nodo<T> siguiente = primerNodo;
+						Nodo<T,D> siguiente = primerNodo;
 						primerNodo = nuevo;
 						nuevo.cambiarSiguiente(siguiente);
 						add =true;
 					}
 				}
 				else{
-					Nodo<T> actual=primerNodo;
-					Nodo<T> anterior = null;
+					Nodo<T,D> actual=primerNodo;
+					Nodo<T,D> anterior = null;
 					while(!add){
-						if(actual.darElem().compareTo(elemento) > 0){
+						if(actual.darElem().compareTo(elemento) < 0){
 							if(actual.darSiguiente() == null){
 								actual.cambiarSiguiente(nuevo);
 								add = true;
@@ -76,7 +77,7 @@ public class MaxColaPrioridad <T extends Comparable<T>>implements ColaDePriorida
 						}
 						else{
 							if(anterior == null){
-								Nodo<T>siguiente = primerNodo;
+								Nodo<T,D>siguiente = primerNodo;
 								primerNodo = nuevo;
 								nuevo.cambiarSiguiente(siguiente);
 								add = true;

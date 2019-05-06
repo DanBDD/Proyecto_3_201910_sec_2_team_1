@@ -6,12 +6,13 @@ public class Vertex<K extends Comparable<K>,V,D> {
 	private V value;
 	private V longitud;
 	private V latitud;
+	private int cantidadInfracciones;
 	private ArregloDinamico<Vertex<K,V,D>> adjs;
 	private LinearProbing<K,Edge<K,V,D>> edgs;
 	private Cola<K> ajsIds;
 	
 	
-	public Vertex(K pId, V value){
+	public Vertex(K pId, V value, int infra){
 		id = pId;
 		this.value=value;
 		adjs=new ArregloDinamico<>(5);
@@ -19,6 +20,7 @@ public class Vertex<K extends Comparable<K>,V,D> {
 		latitud=(V) value.toString().substring(0, 10);
 		longitud=(V) value.toString().substring(11);
 		ajsIds= new Cola<>();
+		cantidadInfracciones=infra;
 	}
 	public String darInfoVertice(){
 		return "Identificador: " + id + "Latitud " + latitud + "Longitud " + longitud;
@@ -63,6 +65,16 @@ public class Vertex<K extends Comparable<K>,V,D> {
 		adjs.agregar(otherVertex);
 		ajsIds.enqueue(otherVertex.id);
 		edgs.put(otherVertex.id, new Edge<>(this, otherVertex, pPeso));
+	}
+	public int getCantidadInfracciones() {
+		return cantidadInfracciones;
+	}
+	public void setCantidadInfracciones(int cantidadInfracciones) {
+		this.cantidadInfracciones = cantidadInfracciones;
+	}
+	public void aumentarCantidadIngfracciones()
+	{
+		cantidadInfracciones++;
 	}
 	
 
