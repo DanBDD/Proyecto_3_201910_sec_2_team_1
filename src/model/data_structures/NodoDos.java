@@ -18,7 +18,7 @@ public class NodoDos<T,I>{
 		siguiente = null;
 	}
 	
-	public void cambiarSiguiente(Nodo<T,I> nuevo){
+	public void cambiarSiguiente(NodoDos<T,I> nuevo){
 		siguiente = nuevo;
 	}
 	

@@ -5,7 +5,7 @@ import java.util.Iterator;
 public class MaxColaPrioridad <T extends Comparable<T>,I>implements ColaDePrioridad<T,I>{
 
 	private int numElementos;
-	private NodoMaxCola<T,I> primerNodo;
+	private NodoDos<T,I> primerNodo;
 
 	public MaxColaPrioridad()
 	{
@@ -41,7 +41,7 @@ public class MaxColaPrioridad <T extends Comparable<T>,I>implements ColaDePriori
 		else
 		{
 
-			Nodo<T,I> nuevo = new Nodo<T,I>(elemento,id);
+			NodoDos<T,I> nuevo = new NodoDos<T,I>(elemento,id);
 
 			if(primerNodo == null){
 				primerNodo = nuevo;
@@ -55,15 +55,15 @@ public class MaxColaPrioridad <T extends Comparable<T>,I>implements ColaDePriori
 					}
 					else{
 
-						Nodo<T,I> siguiente = primerNodo;
+						NodoDos<T,I> siguiente = primerNodo;
 						primerNodo = nuevo;
 						nuevo.cambiarSiguiente(siguiente);
 						add =true;
 					}
 				}
 				else{
-					Nodo<T,I> actual=primerNodo;
-					Nodo<T,I> anterior = null;
+					NodoDos<T,I> actual=primerNodo;
+					NodoDos<T,I> anterior = null;
 					while(!add){
 						if(actual.darElem().compareTo(elemento) < 0){
 							if(actual.darSiguiente() == null){
@@ -77,7 +77,7 @@ public class MaxColaPrioridad <T extends Comparable<T>,I>implements ColaDePriori
 						}
 						else{
 							if(anterior == null){
-								Nodo<T,I>siguiente = primerNodo;
+								NodoDos<T,I>siguiente = primerNodo;
 								primerNodo = nuevo;
 								nuevo.cambiarSiguiente(siguiente);
 								add = true;

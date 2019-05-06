@@ -21,6 +21,7 @@ import java.time.LocalTime;
 import java.util.Iterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.JsonArray;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import model.data_structures.ArregloDinamico;
@@ -28,7 +29,6 @@ import model.data_structures.Bag;
 import model.data_structures.Cola;
 import model.data_structures.Edge;
 import model.data_structures.Graph;
-import model.data_structures.JSONFile;
 import model.data_structures.LinearProbing;
 import model.data_structures.MaxColaPrioridad;
 import model.data_structures.Vertex;
@@ -137,25 +137,30 @@ public class Controller extends DefaultHandler{
 			{
 			case 0:
 				try {
-					SAXParserFactory spf = SAXParserFactory.newInstance();
-					spf.setNamespaceAware(true);
-
-					SAXParser saxParser = spf.newSAXParser();
-					XMLReader xmlReader = saxParser.getXMLReader();
-					xmlReader.setContentHandler(this);
-					xmlReader.parse(ruta);
+					//					SAXParserFactory spf = SAXParserFactory.newInstance();
+					//					spf.setNamespaceAware(true);
+					//
+					//					SAXParser saxParser = spf.newSAXParser();
+					//					XMLReader xmlReader = saxParser.getXMLReader();
+					//					xmlReader.setContentHandler(this);
+					//					xmlReader.parse(ruta);
+					cargarVerticesJson();
+					cargarArcosJson();
+					System.out.println("Empezo a juntar");
+					juntarVerticesInfracciones();
+					System.out.println("Termino");
+					
 				}
 				catch(Exception e) {
 					e.getMessage();
 				}
 				break;
 			case 1:
-				escribirVerticesJson();
-				escribirArcosJson();
+				escribirVerticesJson2();
 				System.out.println("Termino escritura, revisar carpeta docs.");
 				break;
 			case 2:
-				cargarVerticesJson();
+				cargarVerticesJson2();
 				cargarArcosJson();
 
 				break;
@@ -176,14 +181,16 @@ public class Controller extends DefaultHandler{
 
 	private void juntarVerticesInfracciones() 
 	{
-		LinearProbing<Long, Vertex<Long, String, Double>> vertices = grafo.getV();
+		LinearProbing<Long, Vertex<Long, String, Double>> vertices = grafo1.getV();
 		Iterator<Long> it = vertices.keys();
-
+		VOMovingViolations infraccion;
 		for (int i = 0; i < arreglo.darTamano(); i++) 
 		{
-			VOMovingViolations infraccion = arreglo.darElem(i);
-			Double lat= Double.parseDouble(infraccion.darLat());
-			Double lon= Double.parseDouble(infraccion.darLon());
+			infraccion = arreglo.darElem(i);
+			String la= infraccion.darLat().replace(",", ".");
+			String lo= infraccion.darLat().replace(",", ".");
+			Double lat= Double.parseDouble(la);
+			Double lon= Double.parseDouble(lo);
 			MaxColaPrioridad<Double, Long> cola = new MaxColaPrioridad<>();
 			while(it.hasNext())
 			{
@@ -340,7 +347,6 @@ public class Controller extends DefaultHandler{
 				adentro.put("lat", latitud );
 				adentro.put("lon", longitud);
 				adentro.put("id",identificador);
-				adentro.put("infracciones", infracciones);
 				//afuera
 				afuera = new JSONObject();
 				afuera.put("vertice", adentro);
@@ -351,7 +357,7 @@ public class Controller extends DefaultHandler{
 
 		}
 		System.out.println("vertices cargados"+c);
-		try (FileWriter file = new FileWriter("./docs/vertices1.json")) {
+		try (FileWriter file = new FileWriter("./data/vertices1.json")) {
 
 			file.write(verticesPrint.toJSONString());
 			file.flush();
@@ -360,7 +366,51 @@ public class Controller extends DefaultHandler{
 			e.printStackTrace();
 		}
 	}
+	public void escribirVerticesJson2() {
+		LinearProbing<Long, Vertex<Long, String, Double>> lin = grafo.getV();
+		Iterator<Long> it = lin.keys();
+		JSONArray verticesPrint = new JSONArray();
+		JSONObject adentro = null;
+		JSONObject afuera = null;
+		Long identificador = null;
+		String latitud = null;
+		String longitud = null;
+		int c=0;
+		int infracciones=0;
+		Vertex<Long,String,Double> vertice = null;
 
+		while(it.hasNext()){
+			//adentro
+			identificador = it.next();
+			if(lin.get(identificador).getId()!=0L) {
+				vertice = grafo.getV().get(identificador);
+				latitud = vertice.getLatitud();
+				longitud = vertice.getLongitud();
+				infracciones = vertice.getCantidadInfracciones();
+				adentro = new JSONObject();
+				adentro.put("lat", latitud );
+				adentro.put("lon", longitud);
+				adentro.put("id",identificador);
+				adentro.put("numIn", infracciones);
+				//afuera
+				afuera = new JSONObject();
+				afuera.put("vertice", adentro);
+
+				verticesPrint.add(afuera);
+				c++;
+			}
+
+		}
+		System.out.println("vertices cargados"+c);
+		try (FileWriter file = new FileWriter("./data/verticesInfracciones.json")) {
+
+			file.write(verticesPrint.toJSONString());
+			file.flush();
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 	private void cargarVerticesJson() {
 		try {
 			JSONParser parser = new JSONParser();
@@ -372,7 +422,32 @@ public class Controller extends DefaultHandler{
 				Long id=  (Long) e.get("id");
 				String lat = (String) e.get("lat");
 				String lon=(String) e.get("lon");
-				String infra= (String)e.get("infracciones");
+				grafo1.addVertex(id, lat+"|"+lon, 0);
+				//				System.out.println(id);
+				//				System.out.println(lat);
+				//				System.out.println(lon);
+			}
+			System.out.println(grafo1.V());
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+	}
+	private void cargarVerticesJson2() {
+		try {
+			JSONParser parser = new JSONParser();
+			JSONArray a = (JSONArray) parser.parse(new FileReader("./data/verticesInfracciones.json"));
+			for (Object o : a)
+			{
+				JSONObject actual = (JSONObject) o;
+				JSONObject e = (JSONObject) actual.get("vertice");
+				Long id=  (Long) e.get("id");
+				String lat = (String) e.get("lat");
+				String lon=(String) e.get("lon");
+				String infra= (String)e.get("numIn");
 				grafo1.addVertex(id, lat+"|"+lon, Integer.parseInt(infra));
 				//				System.out.println(id);
 				//				System.out.println(lat);
@@ -386,7 +461,6 @@ public class Controller extends DefaultHandler{
 			e.printStackTrace();
 		}
 	}
-
 	private void escribirArcosJson() {
 		LinearProbing<Long, Vertex<Long, String,  Double>> lin = grafo.getV();
 		Iterator<Long> it = lin.keys();//ids vertices

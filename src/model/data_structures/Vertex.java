@@ -1,5 +1,7 @@
 package model.data_structures;
 
+import model.vo.VOMovingViolations;
+
 public class Vertex<K extends Comparable<K>,V,D> {
 
 	private K id;
