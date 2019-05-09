@@ -9,19 +9,19 @@ public class Vertex<K extends Comparable<K>,V,D> {
 	private V longitud;
 	private V latitud;
 	private int cantidadInfracciones;
+	private ArregloDinamico<Edge<K, V, D>> edgs;
 	private ArregloDinamico<Vertex<K,V,D>> adjs;
-	private LinearProbing<K,Edge<K,V,D>> edgs;
-	private Cola<K> ajsIds;
+	private Cola<K> adjsId;
 	
 	
 	public Vertex(K pId, V value, int infra){
 		id = pId;
 		this.value=value;
-		adjs=new ArregloDinamico<>(5);
-		edgs= new LinearProbing<>(2);
+		edgs=new ArregloDinamico<>(5);
+		setAdjs(new ArregloDinamico<Vertex<K,V,D>>(5));
+		adjsId=new Cola<K>();
 		latitud=(V) value.toString().substring(0, 10);
 		longitud=(V) value.toString().substring(11);
-		ajsIds= new Cola<>();
 		cantidadInfracciones=infra;
 	}
 	public String darInfoVertice(){
@@ -34,13 +34,9 @@ public class Vertex<K extends Comparable<K>,V,D> {
 	{
 		return value;
 	}
-	public ArregloDinamico<Vertex<K,V,D>> getAdjs()
+	public ArregloDinamico<Edge<K, V, D>> getEdges()
 	{
-		return adjs;
-	}
-	public Cola<K> getAdjsIds()
-	{
-		return ajsIds;
+		return edgs;
 	}
 	public V getLatitud()
 	{
@@ -50,10 +46,6 @@ public class Vertex<K extends Comparable<K>,V,D> {
 	{
 		return longitud;
 	}
-	public LinearProbing<K,Edge<K,V,D>> getEdges()
-	{
-		return edgs;
-	}
 	public void setId(K nuevoId){
 		this.id=nuevoId;
 	}
@@ -62,11 +54,29 @@ public class Vertex<K extends Comparable<K>,V,D> {
 		this.value=nuevoValor;
 		
 	}
-	public void addEdge(Vertex<K,V,D> otherVertex,  D pPeso)
+	public void addEdge(Edge<K, V, D> edge)
 	{	
-		adjs.agregar(otherVertex);
-		ajsIds.enqueue(otherVertex.id);
-		edgs.put(otherVertex.id, new Edge<>(this, otherVertex, pPeso));
+		edgs.agregar(edge);
+		K a = edge.getStartVertex().id;
+		K b = edge.getEndVertex().id;
+		if(this.id.equals(a))
+			adjsId.enqueue(b);
+		else
+			adjsId.enqueue(a);
+	}
+	public Edge<K, V, D> getEdge(K inicial, K fin)
+	{
+		Edge<K, V, D> r=null;
+		for (int i = 0; i < edgs.darTamano(); i++) 
+		{
+			if(edgs.darElem(i).getStartVertex().id.equals(inicial) &&
+					edgs.darElem(i).getEndVertex().id.equals(fin))
+			{
+				r=edgs.darElem(i);
+				break;
+			}
+		}
+		return r;
 	}
 	public int getCantidadInfracciones() {
 		return cantidadInfracciones;
@@ -74,9 +84,21 @@ public class Vertex<K extends Comparable<K>,V,D> {
 	public void setCantidadInfracciones(int cantidadInfracciones) {
 		this.cantidadInfracciones = cantidadInfracciones;
 	}
-	public void aumentarCantidadIngfracciones()
+	public void aumentarCantidadInfracciones()
 	{
 		cantidadInfracciones++;
+	}
+	public ArregloDinamico<Vertex<K,V,D>> getAdjs() {
+		return adjs;
+	}
+	public void setAdjs(ArregloDinamico<Vertex<K,V,D>> adjs) {
+		this.adjs = adjs;
+	}
+	public Cola<K> getAdjsId() {
+		return adjsId;
+	}
+	public void setAdjsId(Cola<K> adjsId) {
+		this.adjsId = adjsId;
 	}
 	
 

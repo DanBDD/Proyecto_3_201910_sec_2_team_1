@@ -9,7 +9,7 @@ import java.util.NoSuchElementException;
  *
  * @param <T> Objeto a guardar en esta estructura
  */
-public class Iterador <T extends Comparable<T>> implements Iterator<T>{
+public class Iterador <T> implements Iterator<T>{
 
 
 	private Nodo<T> actual;

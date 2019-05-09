@@ -7,7 +7,7 @@ import java.util.Iterator;
  *
  * @param <T> Objeto a guardar en esta estructura
  */
-public class Cola<T extends Comparable<T>> implements IQueue<T>{
+public class Cola<T > implements IQueue<T>{
 
 	private Nodo<T> primerNodo;
 

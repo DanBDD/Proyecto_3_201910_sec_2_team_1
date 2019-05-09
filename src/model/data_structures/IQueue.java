@@ -1,6 +1,6 @@
 package model.data_structures;
 
-public interface IQueue<T extends Comparable<T>> extends Iterable<T>{
+public interface IQueue<T> extends Iterable<T>{
 
 	/**
 	 * Retorna true si la Cola esta vacia

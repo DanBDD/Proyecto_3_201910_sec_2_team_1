@@ -18,7 +18,7 @@ import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalTime;
-import java.util.Iterator;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JsonArray;
@@ -137,32 +137,31 @@ public class Controller extends DefaultHandler{
 			{
 			case 0:
 				try {
-					//					SAXParserFactory spf = SAXParserFactory.newInstance();
-					//					spf.setNamespaceAware(true);
-					//
-					//					SAXParser saxParser = spf.newSAXParser();
-					//					XMLReader xmlReader = saxParser.getXMLReader();
-					//					xmlReader.setContentHandler(this);
-					//					xmlReader.parse(ruta);
-					cargarVerticesJson();
-					cargarArcosJson();
-					System.out.println("Empezo a juntar");
-					juntarVerticesInfracciones();
-					System.out.println("Termino");
-					
+					SAXParserFactory spf = SAXParserFactory.newInstance();
+					spf.setNamespaceAware(true);
+
+					SAXParser saxParser = spf.newSAXParser();
+					XMLReader xmlReader = saxParser.getXMLReader();
+					xmlReader.setContentHandler(this);
+					xmlReader.parse(ruta);
+					//					cargarVerticesJson();
+					//					cargarArcosJson();
+					//					System.out.println("Empezo a juntar");
+					//					juntarVerticesInfracciones();
+					//					System.out.println("Termino");
+
 				}
 				catch(Exception e) {
 					e.getMessage();
 				}
 				break;
 			case 1:
-				escribirVerticesJson2();
-				System.out.println("Termino escritura, revisar carpeta docs.");
+				escribirVerticesJson();
+				escribirArcosJson();
 				break;
 			case 2:
-				cargarVerticesJson2();
+				cargarVerticesJson();
 				cargarArcosJson();
-
 				break;
 			case 3:
 				System.out.println("Inserte cu�l semestre desea cargar");
@@ -171,7 +170,11 @@ public class Controller extends DefaultHandler{
 				break;
 			case 4:
 				juntarVerticesInfracciones();
-			case 5:	
+				break;
+			case 5:
+
+				break;
+			case 6:	
 				fin=true;
 				sc.close();
 				break;
@@ -181,7 +184,7 @@ public class Controller extends DefaultHandler{
 
 	private void juntarVerticesInfracciones() 
 	{
-		LinearProbing<Long, Vertex<Long, String, Double>> vertices = grafo1.getV();
+		LinearProbing<Long, Vertex<Long, String, Double>> vertices = grafo.getV();
 		Iterator<Long> it = vertices.keys();
 		VOMovingViolations infraccion;
 		for (int i = 0; i < arreglo.darTamano(); i++) 
@@ -201,7 +204,7 @@ public class Controller extends DefaultHandler{
 				cola.agregar(haversine(lat, lon, lat2, lon2), vertice.getId());
 			}
 			Long corto= cola.delMax();
-			vertices.get(corto).aumentarCantidadIngfracciones();
+			vertices.get(corto).aumentarCantidadInfracciones();
 		}
 	}
 
@@ -269,7 +272,7 @@ public class Controller extends DefaultHandler{
 							Long idNodoOrigen = nodos.darElem(i);
 							Long idNodoDestino = nodos.darElem(i+1);
 
-							Iterator<Long> id = grafo.getV().get(idNodoOrigen).getAdjsIds().iterator();
+							Iterator<Long> id = grafo.getV().get(idNodoOrigen).getAdjsId().iterator();
 							Long actual = null;
 							while(!repetido && id.hasNext()) {
 								actual = id.next();
@@ -312,7 +315,7 @@ public class Controller extends DefaultHandler{
 		while(it.hasNext()) {
 			Long idVertex = it.next();
 			v = lin.get(idVertex);
-			if(v.getAdjsIds().size() == 0) {
+			if(v.getAdjsId().size() == 0) {
 				v.setId(0L);
 				v = null;
 				grafo.reducirV();
@@ -334,7 +337,6 @@ public class Controller extends DefaultHandler{
 		int c=0;
 		int infracciones=0;
 		Vertex<Long,String,Double> vertice = null;
-
 		while(it.hasNext()){
 			//adentro
 			identificador = it.next();
@@ -356,7 +358,7 @@ public class Controller extends DefaultHandler{
 			}
 
 		}
-		System.out.println("vertices cargados"+c);
+		System.out.println("Vertices escritos"+c);
 		try (FileWriter file = new FileWriter("./data/vertices1.json")) {
 
 			file.write(verticesPrint.toJSONString());
@@ -385,7 +387,7 @@ public class Controller extends DefaultHandler{
 			if(lin.get(identificador).getId()!=0L) {
 				vertice = grafo.getV().get(identificador);
 				latitud = vertice.getLatitud();
-				
+
 				longitud = vertice.getLongitud();
 				infracciones = vertice.getCantidadInfracciones();
 				adentro = new JSONObject();
@@ -467,64 +469,39 @@ public class Controller extends DefaultHandler{
 		Iterator<Long> it = lin.keys();//ids vertices
 		JSONArray arcosPrint = new JSONArray();
 		ArrayList<Edge<Long, String, Double>> edges= new ArrayList<>();
-		int c = 0;
+		int c=0;
 		int c1=0;
 		while(it.hasNext()) 
 		{
-			Long idVertice= it.next();
-			Vertex<Long, String, Double> verticeOrigen = lin.get(idVertice);
-			Iterator<Long> i = verticeOrigen.getEdges().keys();
-			while(i.hasNext())
+			Long a = it.next();
+			Vertex<Long, String, Double> v= lin.get(a);
+			ArregloDinamico<Edge<Long, String, Double>> b = v.getEdges();
+			for (int i = 0; i < b.darTamano(); i++) 
 			{
-				edges.add(new Edge<Long, String, Double>(lin.get(idVertice), lin.get(i.next()), 0.0));
-				c++;
-			}
-
-		}
-		for (int j = 0; j < edges.size()-1; j++) 
-		{
-			Edge<Long, String, Double> actual= edges.get(j);
-
-			if(actual!=null) 
-			{
-
-				for (int k = j+1; k < edges.size(); k++) 
+				if(!edges.contains(b.darElem(i)))
 				{
-
-					Edge<Long, String, Double> actual2=edges.get(k);
-
-					if(actual2!=null) 
-					{
-
-						if(actual.getStartVertex().equals(actual2.getEndVertex()) && actual.getEndVertex().equals(actual2.getStartVertex()))
-						{
-							edges.remove(k);
-
-							c--;
-
-						}
-					}
+					edges.add(b.darElem(i));
+					c++;
 				}
-
 			}
-
 		}
-		JSONObject adentro=new JSONObject();
+		JSONObject adentro=null;
+		JSONObject afuera =null;
 		for (int i = 0; i < edges.size(); i++) 
 		{
 			Edge<Long, String, Double> e=edges.get(i);
 			Vertex<Long, String,  Double> in=e.getStartVertex();
 			Vertex<Long, String,  Double> fi=e.getEndVertex();
+			adentro=new JSONObject();
 			adentro.put("inicio",in.getId());
 			adentro.put("fin", fi.getId());
 			adentro.put("peso", haversine(Double.parseDouble(in.getLatitud()), Double.parseDouble(in.getLongitud()), Double.parseDouble(fi.getLatitud()), Double.parseDouble(fi.getLongitud())));
-			JSONObject afuera = new JSONObject();
+			afuera = new JSONObject();
 			afuera.put("arco", adentro);
 			arcosPrint.add(afuera);
+			c1++;
 		}
-
-
-		try (FileWriter file = new FileWriter("./docs/arcos1.json")) {
+		try (FileWriter file = new FileWriter("./data/arcos1.json")) {
 
 			file.write(arcosPrint.toJSONString());
 			file.flush();
@@ -532,6 +509,7 @@ public class Controller extends DefaultHandler{
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		System.out.println("Arcos escritos "+c1);
 	}
 	private void cargarArcosJson() {
 		try {
@@ -606,7 +584,6 @@ public class Controller extends DefaultHandler{
 		}
 		try{
 			if(numeroSemestre ==2){
-
 				for(int i = 0;i<sem2.length;i++){
 					contMes = 0;
 					String mes = sem2[i];
@@ -623,8 +600,9 @@ public class Controller extends DefaultHandler{
 					}
 					CSVReader lector = new CSVReader(new FileReader(mes), ';');
 					String[] linea = lector.readNext();
-					while ((linea = lector.readNext()) != null) {
 
+					while ((linea = lector.readNext()) != null) 
+					{
 						String obID = linea[0];
 						String lat = linea[latitud];
 						String lon = linea[longitud];
@@ -658,15 +636,17 @@ public class Controller extends DefaultHandler{
 					}
 
 					lector.close();
-					System.out.println("Total de infracciones del semestre " + totSem);
-					System.out.println("Infracciones de: ");
-					System.out.println("Julio " + ju);
-					System.out.println("Agosto " + ag);
-					System.out.println("Septiembre " + s);
-					System.out.println("Octubre" + o);
-					System.out.println("Noviembre " + n);
-					System.out.println("Diciembre " + d);
+
 				}
+				System.out.println("Total de infracciones del semestre " + totSem);
+				System.out.println("Infracciones de: ");
+				System.out.println("Julio " + ju);
+				System.out.println("Agosto " + ag);
+				System.out.println("Septiembre " + s);
+				System.out.println("Octubre" + o);
+				System.out.println("Noviembre " + n);
+				System.out.println("Diciembre " + d);
+//				System.out.println("Min ["+minlat+","+minlon+"] y Max ["+maxlat+","+maxlon+"]");
 			}
 
 			else{
