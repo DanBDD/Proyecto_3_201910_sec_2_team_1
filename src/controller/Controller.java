@@ -27,11 +27,13 @@ import org.json.simple.parser.ParseException;
 import model.data_structures.ArregloDinamico;
 import model.data_structures.Bag;
 import model.data_structures.Cola;
+import model.data_structures.Comparaciones;
 import model.data_structures.Edge;
 import model.data_structures.Graph;
 import model.data_structures.LinearProbing;
 import model.data_structures.MaxColaPrioridad;
 import model.data_structures.Vertex;
+import model.vo.Sort;
 import model.vo.VOMovingViolations;
 
 import java.util.*;
@@ -91,7 +93,6 @@ public class Controller extends DefaultHandler{
 	 */
 	public static final String rutaDiciembre = "./data/December_wgs84.csv";
 
-	private ArregloDinamico<Integer> semestres;
 
 	private String[] sem1;
 
@@ -113,6 +114,8 @@ public class Controller extends DefaultHandler{
 
 	private Graph<Long, String, Double> grafo1;
 
+	private Comparable[] muestra;
+
 	public static final double R = 6372.8;
 
 	private static final String ruta = "./data/Central-WashingtonDC-OpenStreetMap.xml";
@@ -124,7 +127,6 @@ public class Controller extends DefaultHandler{
 		view = new MovingViolationsManagerView();
 		grafo = new Graph<Long, String, Double>();		
 		grafo1 = new Graph<Long, String, Double>();		
-		semestres = new ArregloDinamico<>(3);
 	}
 
 	public void run() {
@@ -140,13 +142,13 @@ public class Controller extends DefaultHandler{
 			{
 			case 0:
 				try {
-//					SAXParserFactory spf = SAXParserFactory.newInstance();
-//					spf.setNamespaceAware(true);
-//
-//					SAXParser saxParser = spf.newSAXParser();
-//					XMLReader xmlReader = saxParser.getXMLReader();
-//					xmlReader.setContentHandler(this);
-//					xmlReader.parse(ruta);
+					//					SAXParserFactory spf = SAXParserFactory.newInstance();
+					//					spf.setNamespaceAware(true);
+					//
+					//					SAXParser saxParser = spf.newSAXParser();
+					//					XMLReader xmlReader = saxParser.getXMLReader();
+					//					xmlReader.setContentHandler(this);
+					//					xmlReader.parse(ruta);
 					//					cargarVerticesJson();
 					//					cargarArcosJson();
 					//					System.out.println("Empezo a juntar");
@@ -182,7 +184,6 @@ public class Controller extends DefaultHandler{
 		}
 	}
 	private void cargarInfracciones(int numeroSemestre) {
-		semestres.agregar(numeroSemestre);
 		sem1 = new String[6];
 		sem2 = new String[6];
 
@@ -362,9 +363,14 @@ public class Controller extends DefaultHandler{
 
 	private void crearArreglos()
 	{
+		//Ordenar vertices 
 		System.out.println("Cantidad de vertices cargados "+grafo.V());
-		// 745747=   67795*11+2
+		Comparable [] copia = generarMuestra(grafo.V());
+		Sort.ordenarShellSort(copia, Comparaciones.COORD.comparador, true);
+		System.out.println("Ordenado por latitud y luego por longitud");
+		int q1=0;
 		ArregloDinamico<Vertex<Long, String, Double>> a1=new ArregloDinamico<>(67795);
+		// 745747=   67795*11+2
 		ArregloDinamico<Vertex<Long, String, Double>> a2=new ArregloDinamico<>(67795);
 		ArregloDinamico<Vertex<Long, String, Double>> a3=new ArregloDinamico<>(67795);
 		ArregloDinamico<Vertex<Long, String, Double>> a4=new ArregloDinamico<>(67795);
@@ -375,8 +381,62 @@ public class Controller extends DefaultHandler{
 		ArregloDinamico<Vertex<Long, String, Double>> a9=new ArregloDinamico<>(67795);
 		ArregloDinamico<Vertex<Long, String, Double>> a10=new ArregloDinamico<>(67795);
 		ArregloDinamico<Vertex<Long, String, Double>> a11=new ArregloDinamico<>(67797);
+		while(q1<grafo.V())
+		{
+			Vertex<Long, String, Double> v = (Vertex<Long, String, Double>) copia[q1];
+			if(q1<a1.darTamano())
+				a1.agregar(v);
+			else if(q1<a2.darTamano()+a1.darTamano())
+				a2.agregar(v);
+			else if(q1<a3.darTamano()+a2.darTamano()+a1.darTamano())
+				a3.agregar(v);
+			else if(q1<a4.darTamano()+a3.darTamano()+a2.darTamano()+a1.darTamano())
+				a4.agregar(v);
+			else if(q1<a5.darTamano()+a4.darTamano()+a3.darTamano()+a2.darTamano()+a1.darTamano())
+				a5.agregar(v);
+			else if(q1<a6.darTamano()+a5.darTamano()+a4.darTamano()+a3.darTamano()+a2.darTamano()+a1.darTamano())
+				a6.agregar(v);
+			else if(q1<a7.darTamano()+a6.darTamano()+a5.darTamano()+a4.darTamano()+a3.darTamano()+a2.darTamano()+a1.darTamano())
+				a7.agregar(v);
+			else if(q1<a8.darTamano()+a7.darTamano()+a6.darTamano()+a5.darTamano()+a4.darTamano()+a3.darTamano()+a2.darTamano()+a1.darTamano())
+				a8.agregar(v);
+			else if(q1<a9.darTamano()+a8.darTamano()+a7.darTamano()+a6.darTamano()+a5.darTamano()+a4.darTamano()+a3.darTamano()+a2.darTamano()+a1.darTamano())
+				a9.agregar(v);
+			else if(q1<a10.darTamano()+a9.darTamano()+a8.darTamano()+a7.darTamano()+a6.darTamano()+a5.darTamano()+a4.darTamano()+a3.darTamano()+a2.darTamano()+a1.darTamano())
+				a10.agregar(v);
+			else
+				a11.agregar(v);
+		}
+		System.out.println(a1.darTamano());
+		System.out.println(a2.darTamano());
+		System.out.println(a3.darTamano());
+		System.out.println(a4.darTamano());
+		System.out.println(a5.darTamano());
+		System.out.println(a6.darTamano());
+		System.out.println(a7.darTamano());
+		System.out.println(a8.darTamano());
+		System.out.println(a9.darTamano());
+		System.out.println(a10.darTamano());
+		System.out.println(a11.darTamano());
 
-		
+
+
+
+	}
+	public Comparable<VOMovingViolations> [ ] generarMuestra( int n )
+	{
+		muestra = new Comparable[ n ];
+		// TODO Llenar la muestra aleatoria con los datos guardados en la estructura de datos
+		Iterator<Long> it = grafo.getV().keys();
+		int pos=0;
+		while(it.hasNext())
+		{
+			Long a = it.next();
+			Vertex<Long, String, Double> v = grafo.getV().get(a);
+			muestra[pos] = v;
+			pos++;
+		}
+		return muestra;
 	}
 	private void juntarVerticesInfracciones() 
 	{

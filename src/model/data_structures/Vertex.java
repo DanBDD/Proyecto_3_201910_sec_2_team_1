@@ -2,7 +2,7 @@ package model.data_structures;
 
 import model.vo.VOMovingViolations;
 
-public class Vertex<K extends Comparable<K>,V,D> {
+public class Vertex<K extends Comparable<K>,V,D> implements Comparable<Vertex<K,V,D>> {
 
 	private K id;
 	private V value;
@@ -12,8 +12,8 @@ public class Vertex<K extends Comparable<K>,V,D> {
 	private ArregloDinamico<Edge<K, V, D>> edgs;
 	private ArregloDinamico<Vertex<K,V,D>> adjs;
 	private Cola<K> adjsId;
-	
-	
+
+
 	public Vertex(K pId, V value, int infra){
 		id = pId;
 		this.value=value;
@@ -52,7 +52,7 @@ public class Vertex<K extends Comparable<K>,V,D> {
 	public void setValue(V nuevoValor)
 	{
 		this.value=nuevoValor;
-		
+
 	}
 	public void addEdge(Edge<K, V, D> edge)
 	{	
@@ -100,6 +100,24 @@ public class Vertex<K extends Comparable<K>,V,D> {
 	public void setAdjsId(Cola<K> adjsId) {
 		this.adjsId = adjsId;
 	}
-	
+	@Override
+	public int compareTo(Vertex<K, V, D> o) {
+		long c = Long.parseLong(this.latitud.toString())-Long.parseLong(o.latitud.toString());
+		if(c<0)
+			return -1;
+		else if(c<1)
+			return 1;
+		else
+		{
+			long c2=Long.parseLong(this.longitud.toString())-Long.parseLong(o.longitud.toString());
+			if(c2<0)
+				return -1;
+			else if(c2>0)
+				return 1;
+			else
+				return 0;
+		}
+	}
+
 
 }
