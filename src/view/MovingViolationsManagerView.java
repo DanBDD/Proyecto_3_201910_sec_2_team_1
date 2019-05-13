@@ -21,9 +21,9 @@ public class MovingViolationsManagerView
 		System.out.println("---------------------Taller 8----------------------");
 		System.out.println("0. Cargar grafo");
 		System.out.println("1. Escribir JSON");
-		System.out.println("2. Cargar JSON");
-		System.out.println("3. Cargar infracciones");
-		System.out.println("4. Salir");
+		System.out.println("2. Cargar infracciones");
+		System.out.println("4. Juntar");
+		System.out.println("5. Salir");
 		System.out.println("Digite el nï¿½mero de opciï¿½n para ejecutar la tarea, luego presione enter: (Ej., 1):");
 
 	}
