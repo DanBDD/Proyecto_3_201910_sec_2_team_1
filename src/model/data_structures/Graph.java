@@ -29,7 +29,7 @@ public class Graph<K extends Comparable<K>,V,D> implements IGraph<K, V, D>{
 	}
 
 	@Override
-	public void addVertex(K idVertex, V infoVertex, ArregloDinamico<K> infras) 
+	public void addVertex(K idVertex, V infoVertex, ArregloDinamico<V> infras) 
 	{
 		vertices.put(idVertex, new Vertex<K, V, D>(idVertex, infoVertex, infras));
 		V++;
@@ -38,6 +38,7 @@ public class Graph<K extends Comparable<K>,V,D> implements IGraph<K, V, D>{
 	@Override
 	public void addEdge(K idVertexIni, K idVertexFin, D pPeso) 
 	{
+		
 		Edge<K, V, D> a = new Edge<K, V, D>(vertices.get(idVertexIni), vertices.get(idVertexFin), pPeso);
 		vertices.get(idVertexIni).addEdge(a);
 		vertices.get(idVertexFin).addEdge(a);
