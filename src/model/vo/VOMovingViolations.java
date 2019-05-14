@@ -1,6 +1,6 @@
 package model.vo;
 
-public class VOMovingViolations {
+public class VOMovingViolations implements Comparable<VOMovingViolations>{
 
 	private String id;
 	
@@ -10,8 +10,8 @@ public class VOMovingViolations {
 	
 	public VOMovingViolations(String pid, String plat, String plon) {
 		id = pid;
-		lat = plat;
-		lon = plon;
+		lat = plat.replace(",",".");
+		lon = plon.replace(",",".");
 	}
 	
 	public String darID() {
@@ -26,5 +26,11 @@ public class VOMovingViolations {
 	public String toString() {
 		
 		return "Datos infraccion: ID: " + id + " Latitud: " + lat + " Longitud " + lon;
+	}
+
+	@Override
+	public int compareTo(VOMovingViolations o) {
+		// TODO Auto-generated method stub
+		return 0;
 	}
  }
