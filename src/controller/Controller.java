@@ -1,7 +1,23 @@
 package controller;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Iterator;
 import java.util.Scanner;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
+import com.opencsv.CSVReader;
+
+import model.data_structures.ArregloDinamico;
+import model.data_structures.Graph;
+import model.data_structures.SeparateChaining;
+import model.data_structures.Vertex;
+import model.vo.VOMovingViolations;
 import view.MovingViolationsManagerView;
 
 public class Controller {
@@ -11,13 +27,87 @@ public class Controller {
 
 	//TODO Definir los atributos de estructuras de datos del modelo del mundo del proyecto
 
+	public static final String rutaEnero = "./data/January_wgs84_corregido.csv";
 
+	/**
+	 * Ruta de archivo CSV Febrero.
+	 */
+	public static final String rutaFebrero = "./data/February_wgs84.csv";
+
+	/**
+	 * Ruta de archivo CSV Marzo.
+	 */
+	public static final String rutaMarzo = "./data/March_wgs84.csv";
+
+	/**
+	 * Ruta de archivo CSV Abril.
+	 */
+	public static final String rutaAbril = "./data/Abril_wgs84.csv";
+
+	/**
+	 * Ruta de archivo CSV Mayo.
+	 */
+	public static final String rutaMayo = "./data/May_wgs84.csv";
+	/**
+	 * Ruta de archivo CSV Junio.
+	 */
+	public static final String rutaJunio = "./data/June_wgs84.csv";
+	/**
+	 * Ruta de archivo CSV Julio.
+	 */
+	public static final String rutaJulio = "./data/July_wgs84.csv";
+	/**
+	 * Ruta de archivo CSV Agosto.
+	 */
+	public static final String rutaAgosto = "./data/August_wgs84.csv";
+	/**
+	 * Ruta de archivo CSV Septiembre.
+	 */
+	public static final String rutaSeptiembre = "./data/September_wgs84.csv";
+	/**
+	 * Ruta de archivo CSV Octubre.
+	 */
+	public static final String rutaOctubre = "./data/October_wgs84.csv";
+	/**
+	 * Ruta de archivo CSV Noviembre.
+	 */
+	public static final String rutaNoviembre = "./data/November_wgs84.csv";
+	/**
+	 * Ruta de archivo CSV Diciembre.
+	 */
+	public static final String rutaDiciembre = "./data/December_wgs84.csv";
+
+
+	private String[] sem1;
+
+	private String[] sem2;
+
+	private ArregloDinamico<VOMovingViolations> arreglo;
+
+	//	private boolean empezo;
+	//
+	//	private boolean highWay;
+	//
+	//	private boolean repetido;
+	//
+	//	private ArregloDinamico<Long> nodos ;
+
+	private Graph<Long, String, Double> grafo;
+
+	private SeparateChaining<Long, ArregloDinamico<String>> separate;
+
+	private Comparable[] muestraVertices;
+	private Comparable[] muestra;
+
+	public static final double R = 6372.8;
 	/**
 	 * Metodo constructor
 	 */
 	public Controller()
 	{
 		view = new MovingViolationsManagerView();
+		arreglo = new ArregloDinamico<VOMovingViolations>(100);
+		grafo = new Graph<Long, String, Double>();		
 	}
 
 	/**
@@ -44,23 +134,31 @@ public class Controller {
 			switch(option){
 
 			case 0:
-				String RutaArchivo = "";
+				String RutaArchivoVertices = "";
+				String RutaArchivoArcos="";
 				view.printMessage("Escoger el grafo a cargar: (1) Downtown  o (2)Ciudad Completa.");
 				int ruta = sc.nextInt();
 				if(ruta == 1)
-					RutaArchivo = ""; //TODO Dar la ruta del archivo de Downtown
+				{
+					RutaArchivoVertices = ""; //TODO Dar la ruta del archivo de Downtown
+					RutaArchivoArcos="";
+				}
+
 				else
-					RutaArchivo = ""; //TODO Dar la ruta del archivo de la ciudad completa
+				{
+					RutaArchivoVertices = "./data/finalGraph.json"; //TODO Dar la ruta del archivo de la ciudad completa
+					RutaArchivoArcos="./data/arcosGrande.json";
+
+				}
 
 				startTime = System.currentTimeMillis();
-				loadJSON(RutaArchivo);
+				loadJSONVertices(RutaArchivoVertices);
+				loadJSONArcos(RutaArchivoArcos);
 				endTime = System.currentTimeMillis();
 				duration = endTime - startTime;
 				view.printMessage("Tiempo del requerimiento: " + duration + " milisegundos");
 				// TODO Informar el total de vÃ©rtices y el total de arcos que definen el grafo cargado
 				break;
-
-
 
 			case 1:
 
@@ -69,7 +167,7 @@ public class Controller {
 				view.printMessage("Ingrese El id del segundo vertice (Ej. 901839): ");
 				idVertice2 = sc.nextInt();
 
-				
+
 				startTime = System.currentTimeMillis();
 				caminoCostoMinimoA1(idVertice1, idVertice2);
 				endTime = System.currentTimeMillis();
@@ -88,7 +186,7 @@ public class Controller {
 				view.printMessage("2A. Consultar los N vï¿½rtices con mayor nï¿½mero de infracciones. Ingrese el valor de N: ");
 				int n = sc.nextInt();
 
-				
+
 				startTime = System.currentTimeMillis();
 				mayorNumeroVerticesA2(n);
 				endTime = System.currentTimeMillis();
@@ -112,7 +210,7 @@ public class Controller {
 				view.printMessage("Ingrese El id del segundo vertice (Ej. 901839): ");
 				idVertice2 = sc.nextInt();
 
-				
+
 				startTime = System.currentTimeMillis();
 				caminoLongitudMinimoaB1(idVertice1, idVertice2);
 				endTime = System.currentTimeMillis();
@@ -146,7 +244,7 @@ public class Controller {
 				view.printMessage("Ingrese el nï¿½mero de filas");
 				int filas = sc.nextInt();
 
-				
+
 				startTime = System.currentTimeMillis();
 				definirCuadriculaB2(lonMin,lonMax,latMin,latMax,columnas,filas);
 				endTime = System.currentTimeMillis();
@@ -163,7 +261,7 @@ public class Controller {
 				break;
 
 			case 5:
-				
+
 				startTime = System.currentTimeMillis();
 				arbolMSTKruskalC1();
 				endTime = System.currentTimeMillis();
@@ -179,7 +277,7 @@ public class Controller {
 				break;
 
 			case 6:
-				
+
 				startTime = System.currentTimeMillis();
 				arbolMSTPrimC2();
 				endTime = System.currentTimeMillis();
@@ -194,7 +292,7 @@ public class Controller {
 				break;
 
 			case 7:
-				
+
 				startTime = System.currentTimeMillis();
 				caminoCostoMinimoDijkstraC3();
 				endTime = System.currentTimeMillis();
@@ -213,7 +311,7 @@ public class Controller {
 				idVertice1 = sc.nextInt();
 				view.printMessage("Ingrese El id del segundo vertice (Ej. 901839): ");
 				idVertice2 = sc.nextInt();
-				
+
 				startTime = System.currentTimeMillis();
 				caminoMasCortoC4(idVertice1, idVertice2);
 				endTime = System.currentTimeMillis();
@@ -233,8 +331,184 @@ public class Controller {
 			}
 		}
 	}
-	
-	
+	//	private void cargarInfracciones(int numeroSemestre) {
+	//		sem1 = new String[6];
+	//		sem2 = new String[6];
+	//
+	//		int enero= 0;
+	//		int f=0;
+	//		int a =0;
+	//		int m =0;
+	//		int mayo =0;
+	//		int j =0;
+	//		int ju =0;
+	//		int ag = 0;
+	//		int s =0;
+	//		int o =0;
+	//		int n = 0;
+	//		int d = 0;
+	//		int totSem = 0;
+	//		int contMes=0;
+	//		for(int i = 0; i<6;i++){
+	//			if(i == 0){
+	//				sem1[i] = rutaEnero;
+	//				sem2[i] = rutaJulio;
+	//			}
+	//			else if(i == 1){
+	//				sem1[i] = rutaFebrero;
+	//				sem2[i] = rutaAgosto;
+	//			}
+	//			else if(i == 2){
+	//				sem1[i] = rutaMarzo;
+	//				sem2[i] = rutaSeptiembre;
+	//			}
+	//			else if(i == 3){
+	//				sem1[i] = rutaAbril;
+	//				sem2[i] = rutaOctubre;
+	//			}
+	//			else if(i == 4){
+	//				sem1[i] = rutaMayo;
+	//				sem2[i] = rutaNoviembre;
+	//			}
+	//			else if(i == 5){
+	//				sem1[i] = rutaJunio;
+	//				sem2[i] = rutaDiciembre;
+	//			}
+	//		}
+	//		try{
+	//			if(numeroSemestre ==2){
+	//				for(int i = 0;i<sem2.length;i++){
+	//					contMes = 0;
+	//					String mes = sem2[i];
+	//					int latitud = -1;
+	//					int longitud = -1;
+	//
+	//					if(i==10 || i==11 || i==12) {
+	//						latitud = 19;
+	//						longitud = 20; 
+	//					}
+	//					else {
+	//						latitud = 18;
+	//						longitud = 19;
+	//					}
+	//					CSVReader lector = new CSVReader(new FileReader(mes), ';');
+	//					String[] linea = lector.readNext();
+	//
+	//					while ((linea = lector.readNext()) != null) 
+	//					{
+	//						String obID = linea[0];
+	//						String lat = linea[latitud];
+	//						String lon = linea[longitud];
+	//						VOMovingViolations vo = new VOMovingViolations(obID,lat, lon);
+	//						arreglo.agregar(vo);
+	//						totSem++;
+	//						contMes++;
+	//						if(i == 0){
+	//							ju=contMes;
+	//
+	//						}
+	//						else if(i == 1){
+	//							ag=contMes;
+	//						}
+	//						else if(i == 2){
+	//							s=contMes;
+	//
+	//						}
+	//						else if(i == 3){
+	//							o=contMes;
+	//
+	//						}
+	//						else if(i == 4){
+	//							n=contMes;
+	//
+	//						}
+	//						else if(i == 5){
+	//							d=contMes;
+	//
+	//						}
+	//					}
+	//
+	//					lector.close();
+	//
+	//				}
+	//				System.out.println("Total de infracciones del semestre " + totSem);
+	//				System.out.println("Infracciones de: ");
+	//				System.out.println("Julio " + ju);
+	//				System.out.println("Agosto " + ag);
+	//				System.out.println("Septiembre " + s);
+	//				System.out.println("Octubre" + o);
+	//				System.out.println("Noviembre " + n);
+	//				System.out.println("Diciembre " + d);
+	//			}
+	//
+	//			else{
+	//				for(int i = 0;i<sem1.length;i++){
+	//					contMes = 0;
+	//					String mes = sem1[i];
+	//					int latitud = -1;
+	//					int longitud = -1;
+	//
+	//					if(i==0) {
+	//						latitud = 17;
+	//						longitud = 18; 
+	//					}
+	//					else {
+	//						latitud = 18;
+	//						longitud = 19;
+	//					}
+	//					CSVReader lector = new CSVReader(new FileReader(mes), ';');
+	//
+	//					String[] linea = lector.readNext();
+	//					while ((linea = lector.readNext()) != null) {
+	//
+	//						String obID = linea[1];
+	//						String lat = linea[latitud];
+	//						String lon = linea[longitud];
+	//						VOMovingViolations vo = new VOMovingViolations(obID,lat, lon);
+	//						arreglo.agregar(vo);	
+	//						totSem++;
+	//						contMes++;
+	//						if(i == 0){
+	//							enero=contMes;
+	//						}
+	//						else if(i == 1){
+	//							f=contMes;
+	//						}
+	//						else if(i == 2){
+	//							m=contMes;
+	//
+	//						}
+	//						else if(i == 3){
+	//							a=contMes;
+	//
+	//						}
+	//						else if(i == 4){
+	//							mayo=contMes;
+	//
+	//						}
+	//						else if(i == 5){
+	//							j=contMes;
+	//
+	//						}
+	//					}
+	//					lector.close();
+	//				}
+	//				System.out.println("Total de infracciones del semestre " + totSem);
+	//				System.out.println("Infracciones de: ");
+	//				System.out.println("Enero " + enero);
+	//				System.out.println("Febrero " + f);
+	//				System.out.println("Mazro " + m);
+	//				System.out.println("Abril " + a);
+	//				System.out.println("Mayo " + mayo);
+	//				System.out.println("Junio " + j);
+	//			}
+	//		}
+	//		catch (IOException e) {
+	//
+	//			e.printStackTrace();
+	//		}
+	//	}
+
 	// TODO El tipo de retorno de los métodos puede ajustarse según la conveniencia
 
 
@@ -243,9 +517,103 @@ public class Controller {
 	 * @param rutaArchivo 
 	 */
 
-	public void loadJSON(String rutaArchivo) 
+	public void loadJSONVertices(String rutaArchivo) 
 	{
-		// TODO Auto-generated method stub
+		try {
+
+			JSONParser parser = new JSONParser();
+			JSONArray a = (JSONArray) parser.parse(new FileReader(rutaArchivo));
+			for (Object o : a)
+			{
+				JSONObject actual = (JSONObject) o;
+				String id=  (String) actual.get("id");
+				Object lat = actual.get("lat");
+				String lon=(String) actual.get("lon").toString();
+
+				JSONArray ja= (JSONArray) actual.get("infractions");
+				Iterator <String> it = ja.iterator();
+				ArregloDinamico<String> ar = new ArregloDinamico<>(6);
+				while (it.hasNext())
+				{
+					String i = it.next();
+					ar.agregar(i);
+				}
+				JSONArray ja2= (JSONArray) actual.get("adj");
+				Iterator <String> it2 = ja2.iterator();
+				ArregloDinamico<String> ar2 = new ArregloDinamico<>(6);
+				while (it2.hasNext())
+				{
+					String i = it2.next();
+					ar2.agregar(i);
+				}
+				grafo.addVertex(Long.parseLong(id), lat+"|"+lon,ar );
+			}
+			System.out.println("Vertices cargados "+grafo.V());
+		} 
+		catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}	
+	private void loadJSONArcos(String rutaArchivo)
+	{
+		try{
+			JSONParser parser = new JSONParser();
+			JSONArray a = (JSONArray) parser.parse(new FileReader(rutaArchivo));
+			for (Object o : a)
+			{
+				JSONObject actual = (JSONObject) o;
+
+				JSONObject e = (JSONObject) actual.get("arco");
+
+				Double peso=  (Double) e.get("peso");
+				Long inicio = (Long) e.get("inicio");
+				Long fin = (Long) e.get("fin");
+
+				grafo.addEdge(inicio, fin, peso);
+			}	
+
+			System.out.println("Arcos cargados con JSON " + grafo.E());
+		}
+		catch(Exception e )
+		{e.printStackTrace();}
+
+	}
+
+	public Comparable<VOMovingViolations> [ ] generarMuestraVertices( int n )
+	{
+		muestraVertices = new Comparable[ n ];
+		// TODO Llenar la muestra aleatoria con los datos guardados en la estructura de datos
+		Iterator<Long> it = grafo.getV().keys();
+		int pos=0;
+		while(it.hasNext())
+		{
+			Long a = it.next();
+			Vertex<Long, String, Double> v = grafo.getV().get(a);
+			muestraVertices[pos] = v;
+			pos++;
+		}
+		return muestraVertices;
+	}
+	public Comparable<VOMovingViolations> [ ] generarMuestra( int n )
+	{
+		muestra = new Comparable[ n ];
+		// TODO Llenar la muestra aleatoria con los datos guardados en la estructura de datos
+		ArregloDinamico<VOMovingViolations> e = arreglo;
+
+		int pos=0;
+		while(pos<n)
+		{
+			muestra[pos] = e.darElem(pos);
+			pos++;
+		}
+		return muestra;
 	}
 
 
@@ -323,7 +691,7 @@ public class Controller {
 		// TODO Auto-generated method stub
 
 	}
-	
+
 	// TODO El tipo de retorno de los métodos puede ajustarse según la conveniencia
 	/**
 	 * Requerimiento 4C:Encontrar el camino mï¿½s corto para un viaje entre dos ubicaciones geogrï¿½ficas escogidas aleatoriamente al interior del grafo.

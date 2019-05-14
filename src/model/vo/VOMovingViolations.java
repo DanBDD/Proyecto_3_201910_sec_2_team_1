@@ -3,7 +3,7 @@ package model.vo;
 /**
  * Representation of a Trip object
  */
-public class VOMovingViolations {
+public class VOMovingViolations implements Comparable<VOMovingViolations>{
 	
 
 	// ---------------------------------------------------------
@@ -147,6 +147,12 @@ public class VOMovingViolations {
 	
 	public double getPenalty2() {
 		return this.PENALTY2;
+	}
+
+	@Override
+	public int compareTo(VOMovingViolations o) {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 }
