@@ -19,7 +19,7 @@ public class TestGrafo extends TestCase{
 		arr = new Graph<>();
 		for(int actual: ARREGLO)
 		{
-			arr.addVertex(actual,actual+"|"+actual,actual);
+			arr.addVertex(actual,actual+"|"+actual, null);
 		}
 		arr.addEdge(35078905, 38478383, 2.0);
 		arr.addEdge(35078905, 15647305, 2.0);

@@ -12,9 +12,10 @@ public class Vertex<K extends Comparable<K>,V,D> implements Comparable<Vertex<K,
 	private ArregloDinamico<Edge<K, V, D>> edgs;
 	private ArregloDinamico<Vertex<K,V,D>> adjs;
 	private Cola<K> adjsId;
+	private ArregloDinamico<K> infracciones;
 
 
-	public Vertex(K pId, V value, int infra){
+	public Vertex(K pId, V value, ArregloDinamico<K> infras){
 		id = pId;
 		this.value=value;
 		edgs=new ArregloDinamico<>(5);
@@ -22,7 +23,8 @@ public class Vertex<K extends Comparable<K>,V,D> implements Comparable<Vertex<K,
 		adjsId=new Cola<K>();
 		latitud=(V) value.toString().substring(0, 10);
 		longitud=(V) value.toString().substring(11);
-		cantidadInfracciones=infra;
+		infracciones= infras;
+		cantidadInfracciones=infracciones.darTamano();
 	}
 	public String darInfoVertice(){
 		return "Identificador: " + id + "Latitud " + latitud + "Longitud " + longitud;
@@ -99,6 +101,14 @@ public class Vertex<K extends Comparable<K>,V,D> implements Comparable<Vertex<K,
 	}
 	public void setAdjsId(Cola<K> adjsId) {
 		this.adjsId = adjsId;
+	}
+	public ArregloDinamico<K> getInfracciones()
+	{
+		return infracciones;
+	}
+	public void setInfracciones(ArregloDinamico<K> newInfracciones)
+	{
+		infracciones= newInfracciones;
 	}
 	@Override
 	public int compareTo(Vertex<K, V, D> o) {

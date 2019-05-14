@@ -4,6 +4,9 @@ import javax.xml.parsers.*;
 import org.xml.sax.*;
 import org.xml.sax.helpers.*;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.opencsv.CSVParser;
 import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
@@ -28,7 +31,6 @@ import model.data_structures.ArregloDinamico;
 import model.data_structures.Bag;
 import model.data_structures.Cola;
 import model.data_structures.Comparaciones;
-import model.data_structures.ComparacionesInfracciones;
 import model.data_structures.Edge;
 import model.data_structures.Graph;
 import model.data_structures.LinearProbing;
@@ -113,7 +115,6 @@ public class Controller extends DefaultHandler{
 
 	private Graph<Long, String, Double> grafo;
 
-	private Graph<Long, String, Double> grafo1;
 
 	private Comparable[] muestraVertices;
 	private Comparable[] muestra;
@@ -122,18 +123,6 @@ public class Controller extends DefaultHandler{
 
 	private static final String ruta = "./data/Central-WashingtonDC-OpenStreetMap.xml";
 
-	private ArregloDinamico<Vertex<Long, String, Double>> a1;
-	// 745747=   67795*11+2
-	private ArregloDinamico<Vertex<Long, String, Double>> a2;
-	private ArregloDinamico<Vertex<Long, String, Double>> a3;
-	private ArregloDinamico<Vertex<Long, String, Double>> a4;
-	private ArregloDinamico<Vertex<Long, String, Double>> a5;
-	private ArregloDinamico<Vertex<Long, String, Double>> a6;
-	private ArregloDinamico<Vertex<Long, String, Double>> a7;
-	private ArregloDinamico<Vertex<Long, String, Double>> a8;
-	private ArregloDinamico<Vertex<Long, String, Double>> a9;
-	private ArregloDinamico<Vertex<Long, String, Double>> a10;
-	private ArregloDinamico<Vertex<Long, String, Double>> a11;
 
 
 	public Controller() throws Exception {
@@ -141,19 +130,7 @@ public class Controller extends DefaultHandler{
 		arreglo = new ArregloDinamico<VOMovingViolations>(100);
 		view = new MovingViolationsManagerView();
 		grafo = new Graph<Long, String, Double>();		
-		grafo1 = new Graph<Long, String, Double>();		
-		a1=new ArregloDinamico<>(67795);
-		// 745747=   67795*11+2
-		a2=new ArregloDinamico<>(67795);
-		a3=new ArregloDinamico<>(67795);
-		a4=new ArregloDinamico<>(67795);
-		a5=new ArregloDinamico<>(67795);
-		a6=new ArregloDinamico<>(67795);
-		a7=new ArregloDinamico<>(67795);
-		a8=new ArregloDinamico<>(67795);
-		a9=new ArregloDinamico<>(67795);
-		a10=new ArregloDinamico<>(67795);
-		a11=new ArregloDinamico<>(67797);
+
 	}
 
 	public void run() {
@@ -198,10 +175,8 @@ public class Controller extends DefaultHandler{
 				cargarInfracciones(param);
 				break;
 			case 3:
-				juntarVerticesInfracciones();
 				break;
 			case 4:
-				crearArreglos();
 				break;
 			case 5:	
 				fin=true;
@@ -387,55 +362,6 @@ public class Controller extends DefaultHandler{
 			e.printStackTrace();
 		}
 	}
-
-	private void crearArreglos()
-	{
-		//Ordenar vertices 
-		System.out.println("Cantidad de vertices cargados "+grafo.V());
-		Comparable [] copia = generarMuestraVertices(grafo.V());
-		Sort.ordenarShellSort(copia, Comparaciones.COORD.comparador, true);
-		System.out.println("Ordenado por latitud y luego por longitud");
-		int q1=0;
-		while(q1<grafo.V())
-		{
-			Vertex<Long, String, Double> v = (Vertex<Long, String, Double>) copia[q1];
-			if(q1<67795)
-				a1.agregar(v);			
-			else if(q1<67795*2)
-				a2.agregar(v);
-			else if(q1<67795*3)
-				a3.agregar(v);
-			else if(q1<67795*4)
-				a4.agregar(v);
-			else if(q1<67795*5)
-				a5.agregar(v);
-			else if(q1<67795*6)
-				a6.agregar(v);
-			else if(q1<67795*7)
-				a7.agregar(v);
-			else if(q1<67795*8)
-				a8.agregar(v);
-			else if(q1<67795*9)
-				a9.agregar(v);
-			else if(q1<67795*10)
-				a10.agregar(v);
-			else
-				a11.agregar(v);
-			q1++;
-		}
-		System.out.println(a1.darTamano());
-		System.out.println(a2.darTamano());
-		System.out.println(a3.darTamano());
-		System.out.println(a4.darTamano());
-		System.out.println(a5.darTamano());
-		System.out.println(a6.darTamano());
-		System.out.println(a7.darTamano());
-		System.out.println(a8.darTamano());
-		System.out.println(a9.darTamano());
-		System.out.println(a10.darTamano());
-		System.out.println(a11.darTamano());
-
-	}
 	public Comparable<VOMovingViolations> [ ] generarMuestraVertices( int n )
 	{
 		muestraVertices = new Comparable[ n ];
@@ -465,218 +391,7 @@ public class Controller extends DefaultHandler{
 		}
 		return muestra;
 	}
-	private void juntarVerticesInfracciones() 
-	{
-		//		LinearProbing<Long, Vertex<Long, String, Double>> vertices = grafo.getV();
-		//		Iterator<Long> it = vertices.keys();
-		//		VOMovingViolations infraccion;
-		//		for (int i = 0; i < arreglo.darTamano(); i++) 
-		//		{
-		//			infraccion = arreglo.darElem(i);
-		//			String la= infraccion.darLat().replace(",", ".");
-		//			String lo= infraccion.darLat().replace(",", ".");
-		//			Double lat= Double.parseDouble(la);
-		//			Double lon= Double.parseDouble(lo);
-		//			MaxColaPrioridad<Double, Long> cola = new MaxColaPrioridad<>();
-		//			while(it.hasNext())
-		//			{
-		//				Long num= it.next();
-		//				Vertex<Long, String, Double> vertice = vertices.get(num);
-		//				Double lat2= Double.parseDouble(vertice.getLatitud());
-		//				Double lon2= Double.parseDouble(vertice.getLongitud());
-		//				cola.agregar(haversine(lat, lon, lat2, lon2), vertice.getId());
-		//			}
-		//			Long corto= cola.delMax();
-		//			vertices.get(corto).aumentarCantidadInfracciones();
-		//		}
-		//	}
-		Comparable [] copia= generarMuestra(arreglo.darTamano());
-		System.out.println(copia);
-		Sort.ordenarMergeSort(copia, ComparacionesInfracciones.COORD.comparador, true);
-		//Ordenadas
-		System.out.println(a1.darElem(0).darInfoVertice());
-		System.out.println(a2.darElem(0).darInfoVertice());
-		System.out.println(a3.darElem(0).darInfoVertice());
-		System.out.println(a4.darElem(0).darInfoVertice());
-		System.out.println(a5.darElem(0).darInfoVertice());
-		System.out.println(a6.darElem(0).darInfoVertice());
-		System.out.println(a7.darElem(0).darInfoVertice());
-		System.out.println(a8.darElem(0).darInfoVertice());
-		System.out.println(a9.darElem(0).darInfoVertice());
-		System.out.println(a10.darElem(0).darInfoVertice());
-		System.out.println(a11.darElem(0).darInfoVertice());
-		int c1=0;
-		int c2=0;
-		int c3=0;
-		int c4=0;
-		int c5=0;
-		int c6=0;
-		int c7=0;
-		int c8=0;
-		int c9=0;
-		int c10=0;
-		int c11=0;
-		LinearProbing<Long, Vertex<Long, String, Double>> vertices = grafo.getV();
-		for (int i = 0; i < copia.length; i++) {
-			VOMovingViolations v = (VOMovingViolations) copia[i];
 
-			if(Double.parseDouble(v.darLat())<38.7998200 && Double.parseDouble(v.darLon())<-76.8456310)
-			{
-				MaxColaPrioridad<Double, Long> cola = new MaxColaPrioridad<>();
-				for(int j=0;j<a1.darTamano();j++)				
-				{
-					Double lat2= Double.parseDouble(a1.darElem(j).getLatitud());
-					Double lon2= Double.parseDouble(a1.darElem(j).getLongitud());
-					cola.agregar(haversine(Double.parseDouble(v.darLat()), Double.parseDouble(v.darLon()), lat2, lon2), a1.darElem(j).getId());
-				}
-				Long corto= cola.delMax();
-				vertices.get(corto).aumentarCantidadInfracciones();		
-				c1++;
-			}
-			else if(Double.parseDouble(v.darLat())<38.8244800 && Double.parseDouble(v.darLon())<-77.0125709)
-			{
-				MaxColaPrioridad<Double, Long> cola = new MaxColaPrioridad<>();
-				for(int j=0;j<a2.darTamano();j++)				
-				{
-					Double lat2= Double.parseDouble(a2.darElem(j).getLatitud());
-					Double lon2= Double.parseDouble(a2.darElem(j).getLongitud());
-					cola.agregar(haversine(Double.parseDouble(v.darLat()), Double.parseDouble(v.darLon()), lat2, lon2), a1.darElem(j).getId());
-				}
-				Long corto= cola.delMax();
-				vertices.get(corto).aumentarCantidadInfracciones();	
-				c2++;
-			}
-			else if(Double.parseDouble(v.darLat())<38.8475036 && Double.parseDouble(v.darLon())<-77.0673638)
-			{
-				MaxColaPrioridad<Double, Long> cola = new MaxColaPrioridad<>();
-				for(int j=0;j<a3.darTamano();j++)				
-				{
-					Double lat2= Double.parseDouble(a3.darElem(j).getLatitud());
-					Double lon2= Double.parseDouble(a3.darElem(j).getLongitud());
-					cola.agregar(haversine(Double.parseDouble(v.darLat()), Double.parseDouble(v.darLon()), lat2, lon2), a1.darElem(j).getId());
-				}
-				Long corto= cola.delMax();
-				vertices.get(corto).aumentarCantidadInfracciones();	
-				c3++;
-			}
-			else if(Double.parseDouble(v.darLat())<38.8669498 && Double.parseDouble(v.darLon())<-77.2538007)
-			{
-				MaxColaPrioridad<Double, Long> cola = new MaxColaPrioridad<>();
-				for(int j=0;j<a4.darTamano();j++)				
-				{
-					Double lat2= Double.parseDouble(a4.darElem(j).getLatitud());
-					Double lon2= Double.parseDouble(a4.darElem(j).getLongitud());
-					cola.agregar(haversine(Double.parseDouble(v.darLat()), Double.parseDouble(v.darLon()), lat2, lon2), a1.darElem(j).getId());
-				}
-				Long corto= cola.delMax();
-				vertices.get(corto).aumentarCantidadInfracciones();	
-				c4++;	
-			}
-			else if(Double.parseDouble(v.darLat())<38.8856110 && Double.parseDouble(v.darLon())<-76.8457860)
-			{
-				MaxColaPrioridad<Double, Long> cola = new MaxColaPrioridad<>();
-				for(int j=0;j<a5.darTamano();j++)				
-				{
-					Double lat2= Double.parseDouble(a5.darElem(j).getLatitud());
-					Double lon2= Double.parseDouble(a5.darElem(j).getLongitud());
-					cola.agregar(haversine(Double.parseDouble(v.darLat()), Double.parseDouble(v.darLon()), lat2, lon2), a1.darElem(j).getId());
-				}
-				Long corto= cola.delMax();
-				vertices.get(corto).aumentarCantidadInfracciones();	
-				c5++;
-			}
-			else if(Double.parseDouble(v.darLat())<38.9038135 && Double.parseDouble(v.darLon())<-77.1407222)
-			{
-				MaxColaPrioridad<Double, Long> cola = new MaxColaPrioridad<>();
-				for(int j=0;j<a6.darTamano();j++)				
-				{
-					Double lat2= Double.parseDouble(a6.darElem(j).getLatitud());
-					Double lon2= Double.parseDouble(a6.darElem(j).getLongitud());
-					cola.agregar(haversine(Double.parseDouble(v.darLat()), Double.parseDouble(v.darLon()), lat2, lon2), a1.darElem(j).getId());
-				}
-				Long corto= cola.delMax();
-				vertices.get(corto).aumentarCantidadInfracciones();	
-				c6++;
-			}
-			else if(Double.parseDouble(v.darLat())<38.9247310 && Double.parseDouble(v.darLon())<-77.1922380)
-			{
-				MaxColaPrioridad<Double, Long> cola = new MaxColaPrioridad<>();
-				for(int j=0;j<a7.darTamano();j++)				
-				{
-					Double lat2= Double.parseDouble(a7.darElem(j).getLatitud());
-					Double lon2= Double.parseDouble(a7.darElem(j).getLongitud());
-					cola.agregar(haversine(Double.parseDouble(v.darLat()), Double.parseDouble(v.darLon()), lat2, lon2), a1.darElem(j).getId());
-				}
-				Long corto= cola.delMax();
-				vertices.get(corto).aumentarCantidadInfracciones();	
-				c7++;
-			}
-			else if(Double.parseDouble(v.darLat())<38.9428580 && Double.parseDouble(v.darLon())<-77.1844630)
-			{
-				MaxColaPrioridad<Double, Long> cola = new MaxColaPrioridad<>();
-				for(int j=0;j<a8.darTamano();j++)				
-				{
-					Double lat2= Double.parseDouble(a8.darElem(j).getLatitud());
-					Double lon2= Double.parseDouble(a8.darElem(j).getLongitud());
-					cola.agregar(haversine(Double.parseDouble(v.darLat()), Double.parseDouble(v.darLon()), lat2, lon2), a1.darElem(j).getId());
-				}
-				Long corto= cola.delMax();
-				vertices.get(corto).aumentarCantidadInfracciones();	
-				c8++;
-			}
-			else if(Double.parseDouble(v.darLat())<38.9672169 && Double.parseDouble(v.darLon())<-76.9183474)
-			{
-				MaxColaPrioridad<Double, Long> cola = new MaxColaPrioridad<>();
-				for(int j=0;j<a9.darTamano();j++)				
-				{
-					Double lat2= Double.parseDouble(a9.darElem(j).getLatitud());
-					Double lon2= Double.parseDouble(a9.darElem(j).getLongitud());
-					cola.agregar(haversine(Double.parseDouble(v.darLat()), Double.parseDouble(v.darLon()), lat2, lon2), a1.darElem(j).getId());
-				}
-				Long corto= cola.delMax();
-				vertices.get(corto).aumentarCantidadInfracciones();	
-				c9++;
-			}
-			else if(Double.parseDouble(v.darLat())<38.9923831 && Double.parseDouble(v.darLon())<-77.0160329)
-			{
-				MaxColaPrioridad<Double, Long> cola = new MaxColaPrioridad<>();
-				for(int j=0;j<a10.darTamano();j++)				
-				{
-					Double lat2= Double.parseDouble(a10.darElem(j).getLatitud());
-					Double lon2= Double.parseDouble(a10.darElem(j).getLongitud());
-					cola.agregar(haversine(Double.parseDouble(v.darLat()), Double.parseDouble(v.darLon()), lat2, lon2), a1.darElem(j).getId());
-				}
-				Long corto= cola.delMax();
-				vertices.get(corto).aumentarCantidadInfracciones();	
-				c10++;
-			}
-			else
-			{
-				MaxColaPrioridad<Double, Long> cola = new MaxColaPrioridad<>();
-				for(int j=0;j<a11.darTamano();j++)				
-				{
-					Double lat2= Double.parseDouble(a11.darElem(j).getLatitud());
-					Double lon2= Double.parseDouble(a11.darElem(j).getLongitud());
-					cola.agregar(haversine(Double.parseDouble(v.darLat()), Double.parseDouble(v.darLon()), lat2, lon2), a1.darElem(j).getId());
-				}
-				Long corto= cola.delMax();
-				vertices.get(corto).aumentarCantidadInfracciones();	
-				c11++;
-			}
-		}
-		System.out.println(c1);
-		System.out.println(c2);
-		System.out.println(c3);
-		System.out.println(c4);
-		System.out.println(c5);
-		System.out.println(c6);
-		System.out.println(c7);
-		System.out.println(c8);
-		System.out.println(c9);
-		System.out.println(c10);
-		System.out.println(c11);
-
-	}
 	//	public void startDocument() throws SAXException {
 	//		empezo = false;
 	//		highWay = false;
@@ -883,55 +598,36 @@ public class Controller extends DefaultHandler{
 			e.printStackTrace();
 		}
 	}
-	private void cargarVerticesJson() {
-		try {
-			JSONParser parser = new JSONParser();
-			JSONArray a = (JSONArray) parser.parse(new FileReader("./data/vertices1.json"));
-			for (Object o : a)
-			{
-				JSONObject actual = (JSONObject) o;
-				JSONObject e = (JSONObject) actual.get("vertice");
-				Long id=  (Long) e.get("id");
-				String lat = (String) e.get("lat");
-				String lon=(String) e.get("lon");
-				grafo.addVertex(id, lat+"|"+lon, 0);
-				//				System.out.println(id);
-				//				System.out.println(lat);
-				//				System.out.println(lon);
+	private void cargarVerticesJson() 
+	{
+		JsonParser parser = new JsonParser();
+		System.out.println(1);
+		// Obtain Array
+		com.google.gson.JsonArray gsonArr = (com.google.gson.JsonArray) parser.parse("./data/finalGraph.json");
+		System.out.println(2);
+
+		// for each element of array
+		for (JsonElement obj : gsonArr) {
+			System.out.println(3);
+
+			// Object of array
+			JsonObject gsonObj = obj.getAsJsonObject();
+
+			// Primitives elements of object
+			long id = gsonObj.get("id").getAsLong();
+			String lat = gsonObj.get("lat").getAsString();
+			String lon = gsonObj.get("lon").getAsString();
+
+			// List of primitive elements
+			com.google.gson.JsonArray in = gsonObj.get("infractions").getAsJsonArray();
+			ArregloDinamico<Long> infras = new ArregloDinamico<>(6);
+			for (JsonElement i : in) {
+				infras.agregar(i.getAsLong());
 			}
-			System.out.println(grafo.V());
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (ParseException e) {
-			e.printStackTrace();
+			// Object Constructor
+			grafo.addVertex(id, lat+"|"+lon, infras);
 		}
-	}
-	private void cargarVerticesJson2() {
-		try {
-			JSONParser parser = new JSONParser();
-			JSONArray a = (JSONArray) parser.parse(new FileReader("./data/verticesInfracciones.json"));
-			for (Object o : a)
-			{
-				JSONObject actual = (JSONObject) o;
-				JSONObject e = (JSONObject) actual.get("vertice");
-				Long id=  (Long) e.get("id");
-				String lat = (String) e.get("lat");
-				String lon=(String) e.get("lon");
-				String infra= (String)e.get("numIn");
-				grafo1.addVertex(id, lat+"|"+lon, Integer.parseInt(infra));
-				//				System.out.println(id);
-				//				System.out.println(lat);
-				//				System.out.println(lon);
-			}
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
+		System.out.println(grafo.V());
 	}
 	private void escribirArcosJson() {
 		LinearProbing<Long, Vertex<Long, String,  Double>> lin = grafo.getV();
@@ -984,7 +680,6 @@ public class Controller extends DefaultHandler{
 		try {
 			JSONParser parser = new JSONParser();
 			JSONArray a = (JSONArray) parser.parse(new FileReader("./data/arcos1.json"));
-			ArregloDinamico<Long> b = new ArregloDinamico<>(12);
 			for (Object o : a)
 			{
 				JSONObject actual = (JSONObject) o;
@@ -993,9 +688,7 @@ public class Controller extends DefaultHandler{
 				Double peso=  (Double) e.get("peso");
 				Long inicio = (Long) e.get("inicio");
 				Long fin = (Long) e.get("fin");
-
 				grafo.addEdge(inicio, fin, peso);
-
 			}	
 
 			System.out.println("Arcos cargados con JSON " + grafo.E());

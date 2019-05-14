@@ -15,7 +15,7 @@ public class TestMax extends TestCase{
 		cola= new MaxColaPrioridad<Integer,Integer>();
 		for(int actual: ARREGLO)
 		{
-			cola.agregar(actual,actual);
+			cola.agregar(actual);
 		}
 
 	}

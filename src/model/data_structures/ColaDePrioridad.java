@@ -1,10 +1,10 @@
 package model.data_structures;
 
-public interface ColaDePrioridad<T extends Comparable<T>,I>  {
+public interface ColaDePrioridad<T extends Comparable<T>>  {
 
 	int darNumElementos();
-	I delMax();
+	T delMax();
 	T max();
 	boolean estaVacia();
-	void agregar(T elemento, I id);
+	void agregar(T elemento);
 }

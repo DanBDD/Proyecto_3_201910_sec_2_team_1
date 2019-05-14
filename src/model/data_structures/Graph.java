@@ -29,9 +29,9 @@ public class Graph<K extends Comparable<K>,V,D> implements IGraph<K, V, D>{
 	}
 
 	@Override
-	public void addVertex(K idVertex, V infoVertex, int infra) 
+	public void addVertex(K idVertex, V infoVertex, ArregloDinamico<K> infras) 
 	{
-		vertices.put(idVertex, new Vertex<K, V, D>(idVertex, infoVertex, infra));
+		vertices.put(idVertex, new Vertex<K, V, D>(idVertex, infoVertex, infras));
 		V++;
 	}
 
