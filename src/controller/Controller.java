@@ -17,6 +17,7 @@ import com.opencsv.CSVReader;
 import model.data_structures.ArregloDinamico;
 import model.data_structures.BFS;
 import model.data_structures.Bag;
+import model.data_structures.DFS;
 import model.data_structures.Graph;
 import model.data_structures.LinearProbing;
 import model.data_structures.MaxHeapCP;
@@ -530,7 +531,7 @@ public class Controller {
 		//		}
 	}
 
-	// TODO El tipo de retorno de los métodos puede ajustarse según la conveniencia
+	// TODO El tipo de retorno de los mï¿½todos puede ajustarse segï¿½n la conveniencia
 
 
 	/**
@@ -561,14 +562,14 @@ public class Controller {
 				}
 				JSONArray ja2= (JSONArray) actual.get("adj");
 				Iterator <String> it2 = ja2.iterator();
-				ArregloDinamico<String> ar2 = new ArregloDinamico<>(6);
+				Bag<String> ar2 = new Bag<>();
 				while (it2.hasNext())
 				{
 					String i = it2.next();
-					ar2.agregar(i);
+					ar2.add(i);
 				}
-				grafo.addVertex(Long.parseLong(id), lat+"|"+lon,ar );
-				heap.agregar(new Vertex<Long, String, Double>(Long.parseLong(id), lat+"|"+lon, ar));
+				grafo.addVertex(Long.parseLong(id), lat+"|"+lon,ar,ar2);
+				heap.agregar(new Vertex<Long, String, Double>(Long.parseLong(id), lat+"|"+lon, ar,ar2));
 				arregloIdsGrafo.agregar(Long.parseLong(id));
 			}
 			System.out.println("Vertices cargados "+grafo.V());
@@ -640,7 +641,7 @@ public class Controller {
 	}
 
 
-	// TODO El tipo de retorno de los métodos puede ajustarse según la conveniencia
+	// TODO El tipo de retorno de los mï¿½todos puede ajustarse segï¿½n la conveniencia
 	/**
 	 * Requerimiento 1A: Encontrar el camino de costo mï¿½nimo para un viaje entre dos ubicaciones geogrï¿½ficas.
 	 * @param idVertice2 
@@ -650,7 +651,7 @@ public class Controller {
 		// TODO Auto-generated method stub
 	}
 
-	// TODO El tipo de retorno de los métodos puede ajustarse según la conveniencia
+	// TODO El tipo de retorno de los mï¿½todos puede ajustarse segï¿½n la conveniencia
 	/**
 	 * Requerimiento 2A: Determinar los n vï¿½rtices con mayor nï¿½mero de infracciones. Adicionalmente identificar las
 	 * componentes conectadas (subgrafos) que se definan ï¿½nicamente entre estos n vï¿½rtices
@@ -669,44 +670,47 @@ public class Controller {
 		for (int i = 0; i < mayores.darTamano(); i++)
 		{
 			Vertex<Long, String, Double> v = mayores.darElem(i);
-			grafo1.addVertex(v.getId(), v.getLatitud()+"|"+v.getLongitud(), v.getInfracciones());
+			grafo1.addVertex(v.getId(), v.getLatitud()+"|"+v.getLongitud(), v.getInfracciones(),v.getids());
 		}
 		LinearProbing<Long, Vertex<Long,String,Double>> lin= grafo1.getV();
-		System.out.println(grafo1.V());
 		LinearProbing<Long, Vertex<Long,String,Double>> linGrande= grafo.getV();
 		Iterator <Long> it = linGrande.keys();
-		int c=0;
-		int v=0;
+		//		int si=0;
+		//		int no=0;
+		//		int arcoSi=0;
+		//		int arcoNo=0;
 		while(it.hasNext())
 		{
-			Long actual = it.next();
-			Vertex<Long,String,Double> vInicial = linGrande.get(actual);
-			Bag<Long> bIdsAdjs = vInicial.getids();
-			if(lin.get(actual)!=null)
+			Long i= it.next();
+			if(lin.get(i)!=null)
 			{
-				for(long i:bIdsAdjs)
+				//				si++;
+				Vertex<Long, String, Double> vertice=linGrande.get(i);
+				Bag<String> adjs= vertice.getids();
+				for(String a: adjs)
 				{
-
-//					if(lin.get(i)!=null)
-//					{
-						Vertex<Long,String,Double> vFinal = lin.get(i);
-						double peso = haversine(Double.parseDouble(vInicial.getLatitud()), Double.parseDouble(vInicial.getLongitud()), Double.parseDouble(vFinal.getLatitud()), Double.parseDouble(vFinal.getLongitud()));
-						grafo1.addEdge(actual, i, peso);
-						System.out.println(222222);
-//					}
-//					else
-//					{
-//						c++;
-//
-//					}
+					if(lin.get(Long.parseLong(a))!=null)
+					{
+						Vertex<Long, String, Double> verticeFin=lin.get(Long.parseLong(a));
+						double peso= haversine(Double.parseDouble(vertice.getLatitud()), Double.parseDouble(vertice.getLongitud()), Double.parseDouble(verticeFin.getLatitud()), Double.parseDouble(verticeFin.getLongitud()));
+						grafo1.addEdge(vertice.getId(), verticeFin.getId(), peso);
+					}
+					//					else
+					//					{
+					//						arcoNo++;
+					//					}
 				}
 			}
-			else
-				v++;
-
+			//			else
+			//			{
+			//				no++;
+			//			}
 		}
-		System.out.println("C "+c);
-		System.out.println("V "+v);
+		//		System.out.println("SI "+si);
+		//		System.out.println("NO "+no);
+		//		System.out.println("ArcoSi "+arcoSi);
+		//		System.out.println("arcosNO "+arcoNo);
+
 		System.out.println(grafo1.E());
 
 	}
@@ -722,7 +726,7 @@ public class Controller {
 		return R * c;
 	}
 
-	// TODO El tipo de retorno de los métodos puede ajustarse según la conveniencia
+	// TODO El tipo de retorno de los mï¿½todos puede ajustarse segï¿½n la conveniencia
 	/**
 	 * Requerimiento 1B: Encontrar el camino mï¿½s corto para un viaje entre dos ubicaciones geogrï¿½ficas 
 	 * @param idVertice2 
@@ -741,7 +745,7 @@ public class Controller {
 		}
 	}
 
-	// TODO El tipo de retorno de los métodos puede ajustarse según la conveniencia
+	// TODO El tipo de retorno de los mï¿½todos puede ajustarse segï¿½n la conveniencia
 	/**
 	 * Requerimiento 2B:  Definir una cuadricula regular de N columnas por M filas. que incluya las longitudes y latitudes dadas
 	 * @param  lonMin: Longitud minima presente dentro de la cuadricula
@@ -756,7 +760,7 @@ public class Controller {
 		// TODO Auto-generated method stub
 	}
 
-	// TODO El tipo de retorno de los métodos puede ajustarse según la conveniencia
+	// TODO El tipo de retorno de los mï¿½todos puede ajustarse segï¿½n la conveniencia
 	/**
 	 * Requerimiento 1C:  Calcular un ï¿½rbol de expansiï¿½n mï¿½nima (MST) con criterio distancia, utilizando el algoritmo de Kruskal.
 	 */
@@ -765,7 +769,7 @@ public class Controller {
 
 	}
 
-	// TODO El tipo de retorno de los métodos puede ajustarse según la conveniencia
+	// TODO El tipo de retorno de los mï¿½todos puede ajustarse segï¿½n la conveniencia
 	/**
 	 * Requerimiento 2C: Calcular un ï¿½rbol de expansiï¿½n mï¿½nima (MST) con criterio distancia, utilizando el algoritmo de Prim. (REQ 2C)
 	 */
@@ -774,7 +778,7 @@ public class Controller {
 
 	}
 
-	// TODO El tipo de retorno de los métodos puede ajustarse según la conveniencia
+	// TODO El tipo de retorno de los mï¿½todos puede ajustarse segï¿½n la conveniencia
 	/**
 	 * Requerimiento 3C: Calcular los caminos de costo mï¿½nimo con criterio distancia que conecten los vï¿½rtices resultado
 	 * de la aproximaciï¿½n de las ubicaciones de la cuadricula N x M encontrados en el punto 5.
@@ -784,7 +788,7 @@ public class Controller {
 
 	}
 
-	// TODO El tipo de retorno de los métodos puede ajustarse según la conveniencia
+	// TODO El tipo de retorno de los mï¿½todos puede ajustarse segï¿½n la conveniencia
 	/**
 	 * Requerimiento 4C:Encontrar el camino mï¿½s corto para un viaje entre dos ubicaciones geogrï¿½ficas escogidas aleatoriamente al interior del grafo.
 	 * @param idVertice2 
