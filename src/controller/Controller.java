@@ -13,6 +13,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import com.opencsv.CSVReader;
+import com.sun.xml.internal.ws.api.pipe.NextAction;
 
 import model.data_structures.ArregloDinamico;
 import model.data_structures.BFS;
@@ -101,6 +102,7 @@ public class Controller {
 	//	private ArregloDinamico<Long> nodos ;
 
 	private Graph<Long, String, Double> grafo;
+	private Graph<Long, String, Double> grafoR2y9;
 
 
 	private Comparable[] muestraVertices;
@@ -119,6 +121,7 @@ public class Controller {
 		grafo = new Graph<Long, String, Double>();	
 		arregloIdsGrafo=new ArregloDinamico<>(3000);
 		heap= new MaxHeapCP<>();
+		grafoR2y9= new Graph<Long, String, Double>();
 	}
 
 	/**
@@ -569,6 +572,7 @@ public class Controller {
 					ar2.add(Long.parseLong(i));
 				}
 				grafo.addVertex(Long.parseLong(id), lat+"|"+lon,ar,ar2);
+				grafoR2y9.addVertex(Long.parseLong(id), lat+"|"+lon,ar,ar2);
 				heap.agregar(new Vertex<Long, String, Double>(Long.parseLong(id), lat+"|"+lon, ar,ar2));
 				arregloIdsGrafo.agregar(Long.parseLong(id));
 			}
@@ -601,6 +605,7 @@ public class Controller {
 				Long fin = (Long) e.get("fin");
 
 				grafo.addEdge(inicio, fin, peso);
+				grafoR2y9.addEdge(inicio, fin, (double)grafoR2y9.getV().get(inicio).getCantidadInfracciones());
 			}	
 
 			System.out.println("Arcos cargados con JSON " + grafo.E());
@@ -647,8 +652,9 @@ public class Controller {
 	 * @param idVertice2 
 	 * @param idVertice1 
 	 */
-	public void caminoCostoMinimoA1(int idVertice1, int idVertice2) {
-		// TODO Auto-generated method stub
+	public void caminoCostoMinimoA1(int idVertice1, int idVertice2)
+	{
+		
 	}
 
 	// TODO El tipo de retorno de los m�todos puede ajustarse seg�n la conveniencia
@@ -675,16 +681,11 @@ public class Controller {
 		LinearProbing<Long, Vertex<Long,String,Double>> lin= grafo1.getV();
 		LinearProbing<Long, Vertex<Long,String,Double>> linGrande= grafo.getV();
 		Iterator <Long> it = linGrande.keys();
-		//		int si=0;
-		//		int no=0;
-		//		int arcoSi=0;
-		//		int arcoNo=0;
 		while(it.hasNext())
 		{
 			Long i= it.next();
 			if(lin.get(i)!=null)
 			{
-				//				si++;
 				Vertex<Long, String, Double> vertice=linGrande.get(i);
 				Bag<Long> adjs= vertice.getIds();
 				for(Long a: adjs)
@@ -695,25 +696,33 @@ public class Controller {
 						double peso= haversine(Double.parseDouble(vertice.getLatitud()), Double.parseDouble(vertice.getLongitud()), Double.parseDouble(verticeFin.getLatitud()), Double.parseDouble(verticeFin.getLongitud()));
 						grafo1.addEdge(vertice.getId(), verticeFin.getId(), peso);
 					}
-					//					else
-					//					{
-					//						arcoNo++;
-					//					}
 				}
 			}
-			//			else
-			//			{
-			//				no++;
-			//			}
 		}
-		//		System.out.println("SI "+si);
-		//		System.out.println("NO "+no);
-		//		System.out.println("ArcoSi "+arcoSi);
-		//		System.out.println("arcosNO "+arcoNo);
-
-		System.out.println(grafo1.E());
-		
-
+		LinearProbing<Long, Boolean> marked = new LinearProbing<Long, Boolean>(grafo1.V());
+		Iterator<Long> itt = lin.keys();
+		while(itt.hasNext())
+		{
+			Long i = itt.next();
+			marked.put(i, false);
+		}
+		Iterator<Long> ite= marked.keys();
+		int componentes = 0;
+		MaxHeapCP<Bag<Long>> h= new MaxHeapCP<Bag<Long>>();
+		while(ite.hasNext())
+		{
+			Long a = ite.next();
+			if(marked.get(a)==false)
+			{
+				componentes++;
+				DFS<Long,String,Double> d= new DFS<Long, String, Double>(grafo1, a, marked);
+				marked= d.darMarcados();
+				h.agregar(d.darBagDeVertices());
+			}
+		}
+		Bag<Long> max = h.delMax();
+		//en el bag estan los vertices del componente conexo mayor
+		System.out.println("Numeros de componentes: "+componentes);
 	}
 	public  double haversine(double lat1, double lon1, double lat2, double lon2) {
 
@@ -734,10 +743,8 @@ public class Controller {
 	 * @param idVertice1 
 	 */
 	public void caminoLongitudMinimoaB1(long idVertice1, long idVertice2) {
-		// TODO Auto-generated method stub
 		BFS b = new BFS<>(grafo, idVertice1);
 		Iterable r = b.pathTo(idVertice2);
-		System.out.println(r);
 		for (Object object : r) {
 			System.out.println(object);
 		}

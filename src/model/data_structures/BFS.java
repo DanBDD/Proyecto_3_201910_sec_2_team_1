@@ -66,11 +66,8 @@ import java.util.Iterator;
  */
 public class BFS <K extends Comparable<K>,V,D>{
 	private static final int INFINITY = Integer.MAX_VALUE;
-	//	private boolean[] marked;  // marked[v] = is there an s-v path
 	private LinearProbing<Long, Boolean> marked;
-	//	private int[] edgeTo;      // edgeTo[v] = previous edge on shortest s-v path
 	private LinearProbing<Long, Long> edgeTo;
-	//	private long[] distTo;      // distTo[v] = number of edges shortest s-v path
 	private LinearProbing<Long, Integer> distTo;
 
 	private LinearProbing<Long, Vertex<K, V, D>> lista;
@@ -88,8 +85,6 @@ public class BFS <K extends Comparable<K>,V,D>{
 		lista= G.getV();
 		validateVertex(s);
 		bfs(G, s);
-
-		//		assert check(G, s);
 	}
 
 	// breadth-first search from a single source
@@ -105,10 +100,8 @@ public class BFS <K extends Comparable<K>,V,D>{
 			distTo.put(v, INFINITY);
 			marked.put(v, false);
 		}
-		Integer dt = distTo.get(s);
-		dt= 0;
-		Boolean m = marked.get(s);
-		m = true;
+		distTo.put(s, 0);
+		marked.put(s, true);
 		q.enqueue(s);
 		while (!q.isEmpty()) {
 			long v = q.dequeue();
@@ -123,7 +116,6 @@ public class BFS <K extends Comparable<K>,V,D>{
 				}
 			}
 		}
-		System.out.println("Fin BFS");
 	}
 	/**
 	 * Is there a path between the source vertex {@code s} (or sources) and vertex {@code v}?
@@ -158,19 +150,13 @@ public class BFS <K extends Comparable<K>,V,D>{
 	 */
 	public Iterable<Long> pathTo(long v) {
 		validateVertex(v);
-		System.out.println("----");
 		if (!hasPathTo(v)) return null;
 		Stack<Long> path = new Stack<Long>();
 		long x;
 		for (x = v; distTo.get(x) != 0; x = edgeTo.get(x))
 		{
-
-			System.out.println(x);
 			path.push(x);
 		}
-		System.out.println(x);
-		path.push(x);
-		System.out.println("....");
 		path.push(x);
 		return path;
 	}

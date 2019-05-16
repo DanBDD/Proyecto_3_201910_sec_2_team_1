@@ -52,10 +52,13 @@ import java.util.Iterator;
  *  @author Robert Sedgewick
  *  @author Kevin Wayne
  */
-public class DFS{
-	private boolean[] marked;    // marked[v] = is there an s-v path?
-	private int[] edgeTo;        // edgeTo[v] = last edge on s-v path
-	private final int s;         // source vertex
+public class DFS<K extends Comparable<K>,V,D>{
+	private LinearProbing<Long, Boolean> marked;
+	private LinearProbing<Long, Long> edgeTo;
+	private LinearProbing<Long, Vertex<Long, String, Double>> lista;
+	private Bag<Long> vertices;
+
+	private final long s;         // source vertex
 
 	/**
 	 * Computes a path between {@code s} and every other vertex in graph {@code G}.
@@ -63,24 +66,50 @@ public class DFS{
 	 * @param s the source vertex
 	 * @throws IllegalArgumentException unless {@code 0 <= s < V}
 	 */
-	public DFS(Graph G, int s) {
+	public DFS(Graph G, long s) {
 		this.s = s;
-		edgeTo = new int[G.V()];
-		marked = new boolean[G.V()];
-
+		edgeTo = new LinearProbing<Long, Long>(G.V());
+		marked = new LinearProbing<Long, Boolean>(G.V());
+		vertices = new Bag<Long>();
+		lista= G.getV();
 		validateVertex(s);
 		dfs(G, s);
 	}
 
+	public DFS(Graph<Long, String, Double> grafo1, long a, LinearProbing<Long, Boolean> marked2) {
+		this.s = a;
+		edgeTo = new LinearProbing<Long, Long>(grafo1.V());
+		marked = marked2;
+		lista= grafo1.getV();
+		vertices = new Bag<Long>();
+		validateVertex(a);
+		dfs(grafo1, a);	
+	}
+
 	// depth first search from v
-	private void dfs(Graph G, int s2) {
-		marked[s2] = true;
-		for (int w : G.adj(s2)) {
-			if (!marked[w]) {
-				edgeTo[w] = s2;
-				dfs(G, w);
+	private void dfs(Graph G, long s2) 
+	{
+		vertices.add(s2);
+		marked.put(s2, true);
+		Vertex<Long, String, Double> vertice = lista.get(s2);
+		for (long w : vertice.getIds()) {
+			if(lista.get(w)!=null)
+			{
+				if (marked.get(w)==false) 
+				{
+					edgeTo.put(w, s2);
+					dfs(G, w);
+				}
 			}
 		}
+	}
+	public LinearProbing<Long, Boolean> darMarcados()
+	{
+		return marked;
+	}
+	public Bag<Long> darBagDeVertices()
+	{
+		return vertices;
 	}
 
 	/**
@@ -89,9 +118,9 @@ public class DFS{
 	 * @return {@code true} if there is a path, {@code false} otherwise
 	 * @throws IllegalArgumentException unless {@code 0 <= v < V}
 	 */
-	public boolean hasPathTo(int v) {
+	public boolean hasPathTo(long v) {
 		validateVertex(v);
-		return marked[v];
+		return marked.get(v);
 	}
 
 	/**
@@ -102,20 +131,21 @@ public class DFS{
 	 *         {@code s} and vertex {@code v}, as an Iterable
 	 * @throws IllegalArgumentException unless {@code 0 <= v < V}
 	 */
-	public Iterable<Integer> pathTo(int v) {
+	public Iterable<Long> pathTo(long v) {
 		validateVertex(v);
 		if (!hasPathTo(v)) return null;
-		Stack<Integer> path = new Stack<Integer>();
-		for (int x = v; x != s; x = edgeTo[x])
+		Stack<Long> path = new Stack<Long>();
+		for (long x = v; x != s; x = edgeTo.get(x))
 			path.push(x);
 		path.push(s);
 		return path;
 	}
 
 	// throw an IllegalArgumentException unless {@code 0 <= v < V}
-	private void validateVertex(int v) {
-		int V = marked.length;
-		if (v < 0 || v >= V)
-			throw new IllegalArgumentException("vertex " + v + " is not between 0 and " + (V-1));
+	private void validateVertex(long v) {
+		if (lista.get(v)==null)
+		{
+			throw new IllegalArgumentException("vertex not found");
+		}
 	}
 }
