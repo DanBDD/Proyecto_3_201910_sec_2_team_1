@@ -3,6 +3,7 @@ package controller;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Scanner;
 
@@ -14,7 +15,11 @@ import org.json.simple.parser.ParseException;
 import com.opencsv.CSVReader;
 
 import model.data_structures.ArregloDinamico;
+import model.data_structures.BFS;
+import model.data_structures.Bag;
 import model.data_structures.Graph;
+import model.data_structures.LinearProbing;
+import model.data_structures.MaxHeapCP;
 import model.data_structures.SeparateChaining;
 import model.data_structures.Vertex;
 import model.vo.VOMovingViolations;
@@ -84,6 +89,8 @@ public class Controller {
 
 	private ArregloDinamico<VOMovingViolations> arreglo;
 
+	private ArregloDinamico<Long> arregloIdsGrafo;
+
 	//	private boolean empezo;
 	//
 	//	private boolean highWay;
@@ -94,10 +101,11 @@ public class Controller {
 
 	private Graph<Long, String, Double> grafo;
 
-	private SeparateChaining<Long, ArregloDinamico<String>> separate;
 
 	private Comparable[] muestraVertices;
 	private Comparable[] muestra;
+
+	private MaxHeapCP<Vertex<Long, String, Double>> heap;
 
 	public static final double R = 6372.8;
 	/**
@@ -107,7 +115,9 @@ public class Controller {
 	{
 		view = new MovingViolationsManagerView();
 		arreglo = new ArregloDinamico<VOMovingViolations>(100);
-		grafo = new Graph<Long, String, Double>();		
+		grafo = new Graph<Long, String, Double>();	
+		arregloIdsGrafo=new ArregloDinamico<>(3000);
+		heap= new MaxHeapCP<>();
 	}
 
 	/**
@@ -209,7 +219,6 @@ public class Controller {
 				idVertice1 = sc.nextInt();
 				view.printMessage("Ingrese El id del segundo vertice (Ej. 901839): ");
 				idVertice2 = sc.nextInt();
-
 
 				startTime = System.currentTimeMillis();
 				caminoLongitudMinimoaB1(idVertice1, idVertice2);
@@ -331,183 +340,195 @@ public class Controller {
 			}
 		}
 	}
-	//	private void cargarInfracciones(int numeroSemestre) {
-	//		sem1 = new String[6];
-	//		sem2 = new String[6];
-	//
-	//		int enero= 0;
-	//		int f=0;
-	//		int a =0;
-	//		int m =0;
-	//		int mayo =0;
-	//		int j =0;
-	//		int ju =0;
-	//		int ag = 0;
-	//		int s =0;
-	//		int o =0;
-	//		int n = 0;
-	//		int d = 0;
-	//		int totSem = 0;
-	//		int contMes=0;
-	//		for(int i = 0; i<6;i++){
-	//			if(i == 0){
-	//				sem1[i] = rutaEnero;
-	//				sem2[i] = rutaJulio;
-	//			}
-	//			else if(i == 1){
-	//				sem1[i] = rutaFebrero;
-	//				sem2[i] = rutaAgosto;
-	//			}
-	//			else if(i == 2){
-	//				sem1[i] = rutaMarzo;
-	//				sem2[i] = rutaSeptiembre;
-	//			}
-	//			else if(i == 3){
-	//				sem1[i] = rutaAbril;
-	//				sem2[i] = rutaOctubre;
-	//			}
-	//			else if(i == 4){
-	//				sem1[i] = rutaMayo;
-	//				sem2[i] = rutaNoviembre;
-	//			}
-	//			else if(i == 5){
-	//				sem1[i] = rutaJunio;
-	//				sem2[i] = rutaDiciembre;
-	//			}
-	//		}
-	//		try{
-	//			if(numeroSemestre ==2){
-	//				for(int i = 0;i<sem2.length;i++){
-	//					contMes = 0;
-	//					String mes = sem2[i];
-	//					int latitud = -1;
-	//					int longitud = -1;
-	//
-	//					if(i==10 || i==11 || i==12) {
-	//						latitud = 19;
-	//						longitud = 20; 
-	//					}
-	//					else {
-	//						latitud = 18;
-	//						longitud = 19;
-	//					}
-	//					CSVReader lector = new CSVReader(new FileReader(mes), ';');
-	//					String[] linea = lector.readNext();
-	//
-	//					while ((linea = lector.readNext()) != null) 
-	//					{
-	//						String obID = linea[0];
-	//						String lat = linea[latitud];
-	//						String lon = linea[longitud];
-	//						VOMovingViolations vo = new VOMovingViolations(obID,lat, lon);
-	//						arreglo.agregar(vo);
-	//						totSem++;
-	//						contMes++;
-	//						if(i == 0){
-	//							ju=contMes;
-	//
-	//						}
-	//						else if(i == 1){
-	//							ag=contMes;
-	//						}
-	//						else if(i == 2){
-	//							s=contMes;
-	//
-	//						}
-	//						else if(i == 3){
-	//							o=contMes;
-	//
-	//						}
-	//						else if(i == 4){
-	//							n=contMes;
-	//
-	//						}
-	//						else if(i == 5){
-	//							d=contMes;
-	//
-	//						}
-	//					}
-	//
-	//					lector.close();
-	//
-	//				}
-	//				System.out.println("Total de infracciones del semestre " + totSem);
-	//				System.out.println("Infracciones de: ");
-	//				System.out.println("Julio " + ju);
-	//				System.out.println("Agosto " + ag);
-	//				System.out.println("Septiembre " + s);
-	//				System.out.println("Octubre" + o);
-	//				System.out.println("Noviembre " + n);
-	//				System.out.println("Diciembre " + d);
-	//			}
-	//
-	//			else{
-	//				for(int i = 0;i<sem1.length;i++){
-	//					contMes = 0;
-	//					String mes = sem1[i];
-	//					int latitud = -1;
-	//					int longitud = -1;
-	//
-	//					if(i==0) {
-	//						latitud = 17;
-	//						longitud = 18; 
-	//					}
-	//					else {
-	//						latitud = 18;
-	//						longitud = 19;
-	//					}
-	//					CSVReader lector = new CSVReader(new FileReader(mes), ';');
-	//
-	//					String[] linea = lector.readNext();
-	//					while ((linea = lector.readNext()) != null) {
-	//
-	//						String obID = linea[1];
-	//						String lat = linea[latitud];
-	//						String lon = linea[longitud];
-	//						VOMovingViolations vo = new VOMovingViolations(obID,lat, lon);
-	//						arreglo.agregar(vo);	
-	//						totSem++;
-	//						contMes++;
-	//						if(i == 0){
-	//							enero=contMes;
-	//						}
-	//						else if(i == 1){
-	//							f=contMes;
-	//						}
-	//						else if(i == 2){
-	//							m=contMes;
-	//
-	//						}
-	//						else if(i == 3){
-	//							a=contMes;
-	//
-	//						}
-	//						else if(i == 4){
-	//							mayo=contMes;
-	//
-	//						}
-	//						else if(i == 5){
-	//							j=contMes;
-	//
-	//						}
-	//					}
-	//					lector.close();
-	//				}
-	//				System.out.println("Total de infracciones del semestre " + totSem);
-	//				System.out.println("Infracciones de: ");
-	//				System.out.println("Enero " + enero);
-	//				System.out.println("Febrero " + f);
-	//				System.out.println("Mazro " + m);
-	//				System.out.println("Abril " + a);
-	//				System.out.println("Mayo " + mayo);
-	//				System.out.println("Junio " + j);
-	//			}
-	//		}
-	//		catch (IOException e) {
-	//
-	//			e.printStackTrace();
-	//		}
-	//	}
+	private ArregloDinamico<Long> arregloDinamicoGrafo() 
+	{
+		Iterator<Long> it = grafo.getV().keys();
+		ArregloDinamico<Long> vertices = new ArregloDinamico<>(3000);
+		while(it.hasNext())
+		{
+			Long i = it.next();
+			vertices.agregar(i);
+		}
+		return vertices;
+	}
+
+	private void cargarInfracciones(int numeroSemestre) {
+		//		sem1 = new String[6];
+		//		sem2 = new String[6];
+		//
+		//		int enero= 0;
+		//		int f=0;
+		//		int a =0;
+		//		int m =0;
+		//		int mayo =0;
+		//		int j =0;
+		//		int ju =0;
+		//		int ag = 0;
+		//		int s =0;
+		//		int o =0;
+		//		int n = 0;
+		//		int d = 0;
+		//		int totSem = 0;
+		//		int contMes=0;
+		//		for(int i = 0; i<6;i++){
+		//			if(i == 0){
+		//				sem1[i] = rutaEnero;
+		//				sem2[i] = rutaJulio;
+		//			}
+		//			else if(i == 1){
+		//				sem1[i] = rutaFebrero;
+		//				sem2[i] = rutaAgosto;
+		//			}
+		//			else if(i == 2){
+		//				sem1[i] = rutaMarzo;
+		//				sem2[i] = rutaSeptiembre;
+		//			}
+		//			else if(i == 3){
+		//				sem1[i] = rutaAbril;
+		//				sem2[i] = rutaOctubre;
+		//			}
+		//			else if(i == 4){
+		//				sem1[i] = rutaMayo;
+		//				sem2[i] = rutaNoviembre;
+		//			}
+		//			else if(i == 5){
+		//				sem1[i] = rutaJunio;
+		//				sem2[i] = rutaDiciembre;
+		//			}
+		//		}
+		//		try{
+		//			if(numeroSemestre ==2){
+		//				for(int i = 0;i<sem2.length;i++){
+		//					contMes = 0;
+		//					String mes = sem2[i];
+		//					int latitud = -1;
+		//					int longitud = -1;
+		//
+		//					if(i==10 || i==11 || i==12) {
+		//						latitud = 19;
+		//						longitud = 20; 
+		//					}
+		//					else {
+		//						latitud = 18;
+		//						longitud = 19;
+		//					}
+		//					CSVReader lector = new CSVReader(new FileReader(mes), ';');
+		//					String[] linea = lector.readNext();
+		//
+		//					while ((linea = lector.readNext()) != null) 
+		//					{
+		//						String obID = linea[0];
+		//						String lat = linea[latitud];
+		//						String lon = linea[longitud];
+		//						VOMovingViolations vo = new VOMovingViolations(obID,lat, lon);
+		//						arreglo.agregar(vo);
+		//						totSem++;
+		//						contMes++;
+		//						if(i == 0){
+		//							ju=contMes;
+		//
+		//						}
+		//						else if(i == 1){
+		//							ag=contMes;
+		//						}
+		//						else if(i == 2){
+		//							s=contMes;
+		//
+		//						}
+		//						else if(i == 3){
+		//							o=contMes;
+		//
+		//						}
+		//						else if(i == 4){
+		//							n=contMes;
+		//
+		//						}
+		//						else if(i == 5){
+		//							d=contMes;
+		//
+		//						}
+		//					}
+		//
+		//					lector.close();
+		//
+		//				}
+		//				System.out.println("Total de infracciones del semestre " + totSem);
+		//				System.out.println("Infracciones de: ");
+		//				System.out.println("Julio " + ju);
+		//				System.out.println("Agosto " + ag);
+		//				System.out.println("Septiembre " + s);
+		//				System.out.println("Octubre" + o);
+		//				System.out.println("Noviembre " + n);
+		//				System.out.println("Diciembre " + d);
+		//			}
+		//
+		//			else{
+		//				for(int i = 0;i<sem1.length;i++){
+		//					contMes = 0;
+		//					String mes = sem1[i];
+		//					int latitud = -1;
+		//					int longitud = -1;
+		//
+		//					if(i==0) {
+		//						latitud = 17;
+		//						longitud = 18; 
+		//					}
+		//					else {
+		//						latitud = 18;
+		//						longitud = 19;
+		//					}
+		//					CSVReader lector = new CSVReader(new FileReader(mes), ';');
+		//
+		//					String[] linea = lector.readNext();
+		//					while ((linea = lector.readNext()) != null) {
+		//
+		//						String obID = linea[1];
+		//						String lat = linea[latitud];
+		//						String lon = linea[longitud];
+		//						VOMovingViolations vo = new VOMovingViolations(obID,lat, lon);
+		//						arreglo.agregar(vo);	
+		//						totSem++;
+		//						contMes++;
+		//						if(i == 0){
+		//							enero=contMes;
+		//						}
+		//						else if(i == 1){
+		//							f=contMes;
+		//						}
+		//						else if(i == 2){
+		//							m=contMes;
+		//
+		//						}
+		//						else if(i == 3){
+		//							a=contMes;
+		//
+		//						}
+		//						else if(i == 4){
+		//							mayo=contMes;
+		//
+		//						}
+		//						else if(i == 5){
+		//							j=contMes;
+		//
+		//						}
+		//					}
+		//					lector.close();
+		//				}
+		//				System.out.println("Total de infracciones del semestre " + totSem);
+		//				System.out.println("Infracciones de: ");
+		//				System.out.println("Enero " + enero);
+		//				System.out.println("Febrero " + f);
+		//				System.out.println("Mazro " + m);
+		//				System.out.println("Abril " + a);
+		//				System.out.println("Mayo " + mayo);
+		//				System.out.println("Junio " + j);
+		//			}
+		//		}
+		//		catch (IOException e) {
+		//
+		//			e.printStackTrace();
+		//		}
+	}
 
 	// TODO El tipo de retorno de los métodos puede ajustarse según la conveniencia
 
@@ -547,6 +568,8 @@ public class Controller {
 					ar2.agregar(i);
 				}
 				grafo.addVertex(Long.parseLong(id), lat+"|"+lon,ar );
+				heap.agregar(new Vertex<Long, String, Double>(Long.parseLong(id), lat+"|"+lon, ar));
+				arregloIdsGrafo.agregar(Long.parseLong(id));
 			}
 			System.out.println("Vertices cargados "+grafo.V());
 		} 
@@ -635,7 +658,68 @@ public class Controller {
 	 */
 	public void mayorNumeroVerticesA2(int n) {
 		// TODO Auto-generated method stub
+		ArregloDinamico<Vertex<Long, String, Double>> mayores= new ArregloDinamico<>(20);
+		for(int i=0;i<n;i++)
+		{
+			Vertex<Long, String, Double> v= heap.delMax();
+			mayores.agregar(v);
+			System.out.println(v.darInfoVertice());
+		}
+		Graph<Long,String,Double> grafo1= new Graph<>();
+		for (int i = 0; i < mayores.darTamano(); i++)
+		{
+			Vertex<Long, String, Double> v = mayores.darElem(i);
+			grafo1.addVertex(v.getId(), v.getLatitud()+"|"+v.getLongitud(), v.getInfracciones());
+		}
+		LinearProbing<Long, Vertex<Long,String,Double>> lin= grafo1.getV();
+		System.out.println(grafo1.V());
+		LinearProbing<Long, Vertex<Long,String,Double>> linGrande= grafo.getV();
+		Iterator <Long> it = linGrande.keys();
+		int c=0;
+		int v=0;
+		while(it.hasNext())
+		{
+			Long actual = it.next();
+			Vertex<Long,String,Double> vInicial = linGrande.get(actual);
+			Bag<Long> bIdsAdjs = vInicial.getids();
+			if(lin.get(actual)!=null)
+			{
+				for(long i:bIdsAdjs)
+				{
 
+//					if(lin.get(i)!=null)
+//					{
+						Vertex<Long,String,Double> vFinal = lin.get(i);
+						double peso = haversine(Double.parseDouble(vInicial.getLatitud()), Double.parseDouble(vInicial.getLongitud()), Double.parseDouble(vFinal.getLatitud()), Double.parseDouble(vFinal.getLongitud()));
+						grafo1.addEdge(actual, i, peso);
+						System.out.println(222222);
+//					}
+//					else
+//					{
+//						c++;
+//
+//					}
+				}
+			}
+			else
+				v++;
+
+		}
+		System.out.println("C "+c);
+		System.out.println("V "+v);
+		System.out.println(grafo1.E());
+
+	}
+	public  double haversine(double lat1, double lon1, double lat2, double lon2) {
+
+		double dLat = Math.toRadians(lat2 - lat1);
+		double dLon = Math.toRadians(lon2 - lon1);
+		lat1 = Math.toRadians(lat1);
+		lat2 = Math.toRadians(lat2);
+
+		double a = Math.pow(Math.sin(dLat / 2),2) + Math.pow(Math.sin(dLon / 2),2) * Math.cos(lat1) * Math.cos(lat2);
+		double c = 2 * Math.asin(Math.sqrt(a));
+		return R * c;
 	}
 
 	// TODO El tipo de retorno de los métodos puede ajustarse según la conveniencia
@@ -646,7 +730,15 @@ public class Controller {
 	 */
 	public void caminoLongitudMinimoaB1(int idVertice1, int idVertice2) {
 		// TODO Auto-generated method stub
-
+		int v1= arregloIdsGrafo.index((long)idVertice1);
+		int v2= arregloIdsGrafo.index((long)idVertice2);
+		System.out.println(grafo.V());
+		BFS b = new BFS<>(grafo, v1,arregloIdsGrafo);
+		Iterable r = b.pathTo(v2, arregloIdsGrafo);
+		System.out.println(r);
+		for (Object object : r) {
+			System.out.println(object);
+		}
 	}
 
 	// TODO El tipo de retorno de los métodos puede ajustarse según la conveniencia

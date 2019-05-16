@@ -12,6 +12,7 @@ public class Vertex<K extends Comparable<K>,V,D> implements Comparable<Vertex<K,
 	private ArregloDinamico<Edge<K, V, D>> edgs;
 	private ArregloDinamico<Vertex<K,V,D>> adjs;
 	private Cola<K> adjsId;
+	private Bag<Long> ids;
 	private ArregloDinamico<V> infracciones;
 
 
@@ -27,9 +28,10 @@ public class Vertex<K extends Comparable<K>,V,D> implements Comparable<Vertex<K,
 		longitud=(V) value.toString().substring(indice2);
 		infracciones= infras;
 		cantidadInfracciones=infracciones.darTamano();
+		ids=new Bag<Long>();
 	}
 	public String darInfoVertice(){
-		return "Identificador: " + id + "Latitud " + latitud + "Longitud " + longitud;
+		return "Identificador: " + id + "  Latitud " + latitud + "  Longitud " + longitud;
 	}
 	public K getId(){
 		return id;
@@ -64,9 +66,15 @@ public class Vertex<K extends Comparable<K>,V,D> implements Comparable<Vertex<K,
 		K a = edge.getStartVertex().id;
 		K b = edge.getEndVertex().id;
 		if(this.id.equals(a))
+		{
 			adjsId.enqueue(b);
+			ids.add((long)b);
+		}
 		else
+		{
 			adjsId.enqueue(a);
+			ids.add((long)a);	
+		}	
 	}
 	public Edge<K, V, D> getEdge(K inicial, K fin)
 	{
@@ -112,24 +120,18 @@ public class Vertex<K extends Comparable<K>,V,D> implements Comparable<Vertex<K,
 	{
 		infracciones= newInfracciones;
 	}
+	public Bag<Long> getids()
+	{
+		return ids;
+	}
 	@Override
 	public int compareTo(Vertex<K, V, D> o) {
-		long c = Long.parseLong(this.latitud.toString())-Long.parseLong(o.latitud.toString());
-		if(c<0)
+		int comparacion= this.cantidadInfracciones-o.cantidadInfracciones;
+		if(comparacion<0)
 			return -1;
-		else if(c<1)
+		else if(comparacion>0)
 			return 1;
 		else
-		{
-			long c2=Long.parseLong(this.longitud.toString())-Long.parseLong(o.longitud.toString());
-			if(c2<0)
-				return -1;
-			else if(c2>0)
-				return 1;
-			else
-				return 0;
+			return 0;
 		}
 	}
-
-
-}
