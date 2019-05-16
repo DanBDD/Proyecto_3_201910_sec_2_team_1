@@ -1,6 +1,6 @@
 package model.data_structures;
 
-
+import java.util.Iterator;
 
 /******************************************************************************
  *  Compilation:  javac DijkstraUndirectedSP.java
@@ -61,11 +61,11 @@ package model.data_structures;
  *  @author Nate Liu
  */
 public class Dijkstra {
-    private double[] distTo;          // distTo[v] = distance  of shortest s->v path
-    private LinearProbing<Comparable<K>, V>
-    private Edge[] edgeTo;            // edgeTo[v] = last edge on shortest s->v path
-    private IndexMinPQ<Double> pq;    // priority queue of vertices
 
+	private LinearProbing<Long, Integer> distTo;// distTo[v] = distance  of shortest s->v path
+    private LinearProbing<Long, Long> edgeTo;           // edgeTo[v] = last edge on shortest s->v path
+    private MinHeapCP<Integer> pq;    // priority queue of vertices
+    private LinearProbing<Long, Vertex<Long,String,Double>> linGrafo;
     /**
      * Computes a shortest-paths tree from the source vertex {@code s} to every
      * other vertex in the edge-weighted graph {@code G}.
@@ -75,38 +75,55 @@ public class Dijkstra {
      * @throws IllegalArgumentException if an edge weight is negative
      * @throws IllegalArgumentException unless {@code 0 <= s < V}
      */
-    public Dijkstra(EdgeWeightedGraph G, int s) {
-        for (Edge e : G.edges()) {
-            if (e.weight() < 0)
-                throw new IllegalArgumentException("edge " + e + " has negative weight");
-        }
+    public Dijkstra(Graph<Long, String, Double> G, long s) {
+    	linGrafo = G.getV();
+    	Iterator<Long> it = linGrafo.keys();
+    	distTo = new LinearProbing<>(G.V());
+        edgeTo = new LinearProbing<>(G.E());
+    	while(it.hasNext()) {
+    		Long i = it.next();
+    		Vertex<Long, String, Double> v = linGrafo.get(i);
+    		for(int a = 0; a<v.getEdges().darTamano();a++) {
+    			if(v.getEdges().darElem(a).getInfo() < 0) {
+                    throw new IllegalArgumentException("edge " + v.getEdges().darElem(a).toString() + " has negative weight");
 
-        distTo = new double[G.V()];
-        edgeTo = new Edge[G.V()];
-
+    			}
+    		}
+    		distTo.put(i, Integer.MAX_VALUE);
+    	}
+       
         validateVertex(s);
 
-        for (int v = 0; v < G.V(); v++)
-            distTo[v] = Double.POSITIVE_INFINITY;
-        distTo[s] = 0.0;
+        distTo.put(s, 0);
 
         // relax vertices in order of distance from s
-        pq = new IndexMinPQ<Double>(G.V());
-        pq.insert(s, distTo[s]);
-        while (!pq.isEmpty()) {
-            int v = pq.delMin();
-            for (Edge e : G.adj(v))
-                relax(e, v);
+        pq = new MinHeapCP<Integer>();
+        pq.agregar(distTo.get(s));
+        while (!pq.estaVacia()) {
+            long v = pq.delMax();
+            Vertex<Long, String, Double> ver = linGrafo.get(v);
+            
+           for(int b = 0; b<ver.getEdges().darTamano();b++) {
+        	   relax(ver.getEdges().darElem(b),v);
+           }
+            
         }
 
         // check optimality conditions
-        assert check(G, s);
+       // assert check(G, s);
     }
 
     // relax edge e and update pq if changed
-    private void relax(Edge e, int v) {
-        int w = e.other(v);
-        if (distTo[w] > distTo[v] + e.weight()) {
+    private void relax(Edge e, long v) {
+//    	int w = e.other(v);
+//        if (distTo[w] > distTo[v] + e.weight()) {
+//            distTo[w] = distTo[v] + e.weight();
+//            edgeTo[w] = e;
+//            if (pq.contains(w)) pq.decreaseKey(w, distTo[w]);
+//            else                pq.insert(w, distTo[w]);
+//        }
+    	Vertex<Long, String, Double> w = e.getEndVertex();
+        if (distTo.get(w) > distTo[v] + e.weight()) {
             distTo[w] = distTo[v] + e.weight();
             edgeTo[w] = e;
             if (pq.contains(w)) pq.decreaseKey(w, distTo[w]);
@@ -166,7 +183,7 @@ public class Dijkstra {
     // check optimality conditions:
     // (i) for all edges e = v-w:            distTo[w] <= distTo[v] + e.weight()
     // (ii) for all edge e = v-w on the SPT: distTo[w] == distTo[v] + e.weight()
-    private boolean check(EdgeWeightedGraph G, int s) {
+    private boolean check(Graph G, int s) {
 
         // check that edge weights are nonnegative
         for (Edge e : G.edges()) {
@@ -215,43 +232,14 @@ public class Dijkstra {
     }
 
     // throw an IllegalArgumentException unless {@code 0 <= v < V}
-    private void validateVertex(int v) {
-        int V = distTo.length;
-        if (v < 0 || v >= V)
-            throw new IllegalArgumentException("vertex " + v + " is not between 0 and " + (V-1));
+    private void validateVertex(long v) {
+        
+        if (linGrafo.get(v) == null)
+            throw new IllegalArgumentException("vertex null");
     }
 
-    /**
-     * Unit tests the {@code DijkstraUndirectedSP} data type.
-     *
-     * @param args the command-line arguments
-     */
-    public static void main(String[] args) {
-        In in = new In(args[0]);
-        EdgeWeightedGraph G = new EdgeWeightedGraph(in);
-        int s = Integer.parseInt(args[1]);
-
-        // compute shortest paths
-        DijkstraUndirectedSP sp = new DijkstraUndirectedSP(G, s);
-
-
-        // print shortest path
-        for (int t = 0; t < G.V(); t++) {
-            if (sp.hasPathTo(t)) {
-                StdOut.printf("%d to %d (%.2f)  ", s, t, sp.distTo(t));
-                for (Edge e : sp.pathTo(t)) {
-                    StdOut.print(e + "   ");
-                }
-                StdOut.println();
-            }
-            else {
-                StdOut.printf("%d to %d         no path\n", s, t);
-            }
-        }
-    }
+ 
 
 }
 
 
-Copyright © 2000–2017, Robert Sedgewick and Kevin Wayne. 
-Last updated: Sat Nov 11 18:41:16 EST 2017.

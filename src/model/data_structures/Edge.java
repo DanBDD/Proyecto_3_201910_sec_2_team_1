@@ -49,4 +49,7 @@ public class Edge<K extends Comparable <K>,V, D> {
 	{
 		this.startVertex=newEndVertex;
 	}
+	public String toString() {
+		return "Arco vertice ini " + getStartVertex().darInfoVertice() + " vertice fin " + getEndVertex().darInfoVertice();
+	}
 }
