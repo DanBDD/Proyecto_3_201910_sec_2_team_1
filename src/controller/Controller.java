@@ -562,11 +562,11 @@ public class Controller {
 				}
 				JSONArray ja2= (JSONArray) actual.get("adj");
 				Iterator <String> it2 = ja2.iterator();
-				Bag<String> ar2 = new Bag<>();
+				Bag<Long> ar2 = new Bag<>();
 				while (it2.hasNext())
 				{
 					String i = it2.next();
-					ar2.add(i);
+					ar2.add(Long.parseLong(i));
 				}
 				grafo.addVertex(Long.parseLong(id), lat+"|"+lon,ar,ar2);
 				heap.agregar(new Vertex<Long, String, Double>(Long.parseLong(id), lat+"|"+lon, ar,ar2));
@@ -670,7 +670,7 @@ public class Controller {
 		for (int i = 0; i < mayores.darTamano(); i++)
 		{
 			Vertex<Long, String, Double> v = mayores.darElem(i);
-			grafo1.addVertex(v.getId(), v.getLatitud()+"|"+v.getLongitud(), v.getInfracciones(),v.getids());
+			grafo1.addVertex(v.getId(), v.getLatitud()+"|"+v.getLongitud(), v.getInfracciones(),v.getIds());
 		}
 		LinearProbing<Long, Vertex<Long,String,Double>> lin= grafo1.getV();
 		LinearProbing<Long, Vertex<Long,String,Double>> linGrande= grafo.getV();
@@ -686,12 +686,12 @@ public class Controller {
 			{
 				//				si++;
 				Vertex<Long, String, Double> vertice=linGrande.get(i);
-				Bag<String> adjs= vertice.getids();
-				for(String a: adjs)
+				Bag<Long> adjs= vertice.getIds();
+				for(Long a: adjs)
 				{
-					if(lin.get(Long.parseLong(a))!=null)
+					if(lin.get(a)!=null)
 					{
-						Vertex<Long, String, Double> verticeFin=lin.get(Long.parseLong(a));
+						Vertex<Long, String, Double> verticeFin=lin.get(a);
 						double peso= haversine(Double.parseDouble(vertice.getLatitud()), Double.parseDouble(vertice.getLongitud()), Double.parseDouble(verticeFin.getLatitud()), Double.parseDouble(verticeFin.getLongitud()));
 						grafo1.addEdge(vertice.getId(), verticeFin.getId(), peso);
 					}
@@ -712,6 +712,7 @@ public class Controller {
 		//		System.out.println("arcosNO "+arcoNo);
 
 		System.out.println(grafo1.E());
+		
 
 	}
 	public  double haversine(double lat1, double lon1, double lat2, double lon2) {
@@ -732,13 +733,10 @@ public class Controller {
 	 * @param idVertice2 
 	 * @param idVertice1 
 	 */
-	public void caminoLongitudMinimoaB1(int idVertice1, int idVertice2) {
+	public void caminoLongitudMinimoaB1(long idVertice1, long idVertice2) {
 		// TODO Auto-generated method stub
-		int v1= arregloIdsGrafo.index((long)idVertice1);
-		int v2= arregloIdsGrafo.index((long)idVertice2);
-		System.out.println(grafo.V());
-		BFS b = new BFS<>(grafo, v1,arregloIdsGrafo);
-		Iterable r = b.pathTo(v2, arregloIdsGrafo);
+		BFS b = new BFS<>(grafo, idVertice1);
+		Iterable r = b.pathTo(idVertice2);
 		System.out.println(r);
 		for (Object object : r) {
 			System.out.println(object);

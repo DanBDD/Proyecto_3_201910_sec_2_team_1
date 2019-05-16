@@ -48,15 +48,14 @@ public class Cola<T > implements IQueue<T>{
 
 	@Override
 	public void enqueue(T t) {
-		Nodo<T> nNode = new Nodo<T>(t);
-		if(ultimo != null)
-			ultimo.cambiarSiguiente(nNode);
-		else
-			primerNodo = nNode;
-		ultimo = nNode;
+		Nodo<T> oldLast=ultimo;
+		ultimo= new Nodo<T>(t);
+		ultimo.cambiarSiguiente(null);
+		if(isEmpty()) primerNodo=ultimo;
+		else oldLast.cambiarSiguiente(ultimo);
 		numElementos++;
 	}
-	
+
 	@Override
 	public T dequeue() {
 		T elem = primerNodo.darElem();
@@ -64,6 +63,7 @@ public class Cola<T > implements IQueue<T>{
 		numElementos--;
 		return elem;
 	}
+
 	
 	public T get(int i){
 		

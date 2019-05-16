@@ -1,5 +1,7 @@
 package model.data_structures;
 
+import java.util.Iterator;
+
 /******************************************************************************
  *  Compilation:  javac BreadthFirstPaths.java
  *  Execution:    java BreadthFirstPaths G s
@@ -64,51 +66,64 @@ package model.data_structures;
  */
 public class BFS <K extends Comparable<K>,V,D>{
 	private static final int INFINITY = Integer.MAX_VALUE;
-	private boolean[] marked;  // marked[v] = is there an s-v path
-	private int[] edgeTo;      // edgeTo[v] = previous edge on shortest s-v path
-	private long[] distTo;      // distTo[v] = number of edges shortest s-v path
-	private ArregloDinamico<Long> arreglo;
+	//	private boolean[] marked;  // marked[v] = is there an s-v path
+	private LinearProbing<Long, Boolean> marked;
+	//	private int[] edgeTo;      // edgeTo[v] = previous edge on shortest s-v path
+	private LinearProbing<Long, Long> edgeTo;
+	//	private long[] distTo;      // distTo[v] = number of edges shortest s-v path
+	private LinearProbing<Long, Integer> distTo;
+
+	private LinearProbing<Long, Vertex<K, V, D>> lista;
 	/**
 	 * Computes the shortest path between the source vertex {@code s}
 	 * and every other vertex in the graph {@code G}.
-	 * @param G the graph
-	 * @param s the source vertex
+	 * @param G del grafo
+	 * @param s id del vertice de inicio
 	 * @throws IllegalArgumentException unless {@code 0 <= s < V}
 	 */
-	public BFS(Graph G, int s, ArregloDinamico<Long> arreglo) {
-		marked = new boolean[G.V()];
-		distTo = new long[G.V()];
-		edgeTo = new int[G.V()];
+	public BFS(Graph G, long s) {
+		marked = new LinearProbing<>(G.V());
+		distTo= new LinearProbing<>(G.V());
+		edgeTo= new LinearProbing<>(G.V());
+		lista= G.getV();
 		validateVertex(s);
-		this.arreglo=arreglo;
-		bfs(G, s, arreglo);
+		bfs(G, s);
 
-//		assert check(G, s);
+		//		assert check(G, s);
 	}
 
 	// breadth-first search from a single source
 	// s posicion de source en arreglo
 	// arreglo con los ids del grafo
-	private void bfs(Graph G, int s, ArregloDinamico<Long> arreglo) {
-		Cola<Integer> q = new Cola<Integer>();
-		for (int v = 0; v < G.V(); v++)
-			distTo[v] = INFINITY;
-		distTo[s] = 0;
-		marked[s] = true;
+	private void bfs(Graph G, long s) 
+	{
+		Cola<Long> q = new Cola<Long>();
+		Iterator<Long> it= lista.keys();
+		while(it.hasNext())
+		{
+			Long v = it.next();
+			distTo.put(v, INFINITY);
+			marked.put(v, false);
+		}
+		Integer dt = distTo.get(s);
+		dt= 0;
+		Boolean m = marked.get(s);
+		m = true;
 		q.enqueue(s);
 		while (!q.isEmpty()) {
-			int v = q.dequeue();
-			Vertex<K, V, D> ver = (Vertex<K, V, D>) G.getV().get(arreglo.darElem(s));
-			for (int w=0 ;w<ver.getids().size();w++) 
-			{
-				if (!marked[w]) {
-					edgeTo[w] = v;
-					distTo[w] = distTo[v] + 1;
-					marked[w] = true;
+			long v = q.dequeue();
+			Vertex<K, V, D> vertice = lista.get(v);
+			for (long w : vertice.getIds()) {
+				if (marked.get(w)==false) 
+				{
+					edgeTo.put(w, v);
+					distTo.put(w, distTo.get(v)+1);
+					marked.put(w, true);
 					q.enqueue(w);
 				}
 			}
 		}
+		System.out.println("Fin BFS");
 	}
 	/**
 	 * Is there a path between the source vertex {@code s} (or sources) and vertex {@code v}?
@@ -116,9 +131,9 @@ public class BFS <K extends Comparable<K>,V,D>{
 	 * @return {@code true} if there is a path, and {@code false} otherwise
 	 * @throws IllegalArgumentException unless {@code 0 <= v < V}
 	 */
-	public boolean hasPathTo(int v) {
+	public boolean hasPathTo(long v) {
 		validateVertex(v);
-		return marked[v];
+		return marked.get(v);
 	}
 
 	/**
@@ -128,9 +143,9 @@ public class BFS <K extends Comparable<K>,V,D>{
 	 * @return the number of edges in a shortest path
 	 * @throws IllegalArgumentException unless {@code 0 <= v < V}
 	 */
-	public long distTo(int v) {
+	public long distTo(long v) {
 		validateVertex(v);
-		return distTo[v];
+		return distTo.get(v);
 	}
 
 	/**
@@ -141,22 +156,29 @@ public class BFS <K extends Comparable<K>,V,D>{
 	 * @return the sequence of vertices on a shortest path, as an Iterable
 	 * @throws IllegalArgumentException unless {@code 0 <= v < V}
 	 */
-	public Iterable<Integer> pathTo(int v, ArregloDinamico<Long> arregloIdsGrafo) {
+	public Iterable<Long> pathTo(long v) {
 		validateVertex(v);
+		System.out.println("----");
 		if (!hasPathTo(v)) return null;
-		Stack<Integer> path = new Stack<Integer>();
-		int x;
-		for (x = v; distTo[x] != 0; x = edgeTo[x])
+		Stack<Long> path = new Stack<Long>();
+		long x;
+		for (x = v; distTo.get(x) != 0; x = edgeTo.get(x))
+		{
+
+			System.out.println(x);
 			path.push(x);
+		}
+		System.out.println(x);
+		path.push(x);
+		System.out.println("....");
 		path.push(x);
 		return path;
 	}
 
 	// throw an IllegalArgumentException unless {@code 0 <= v < V}
-	private void validateVertex(int v) {
-		int V = marked.length;
-		if (v < 0 || v >= V)
-			throw new IllegalArgumentException("vertex " + v + " is not between 0 and " + (V-1));
+	private void validateVertex(long v) {
+		if (lista.get(v)==null)
+			throw new IllegalArgumentException("vertex not found");
 	}
 
 }
