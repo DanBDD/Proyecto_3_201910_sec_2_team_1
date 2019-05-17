@@ -1,6 +1,6 @@
 package model.data_structures;
 
-public class Edge<K extends Comparable <K>,V, D> {
+public class Edge<K extends Comparable <K>,V, D> implements Comparable<Edge<K,V,D>>{
 	
 	//Puede ser el peso u otra informacion
 
@@ -51,5 +51,12 @@ public class Edge<K extends Comparable <K>,V, D> {
 	}
 	public String toString() {
 		return "Arco vertice ini " + getStartVertex().darInfoVertice() + " vertice fin " + getEndVertex().darInfoVertice();
+	}
+	@Override
+	public int compareTo(Edge<K, V, D> arg0) {
+		int comp = 0;
+		
+		return comp;
+				
 	}
 }

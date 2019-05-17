@@ -54,11 +54,16 @@ public class ArregloDinamico<T>{
 	}
 	public void cambiarElementoEnPos(T dato, int pos)
 	{
-		if(pos>tamanoActual) throw new IndexOutOfBoundsException();
+		if(pos>tamanoActual || pos<0) throw new IndexOutOfBoundsException();
+		
 		else{
-			T elem = darElem(pos);
-			elem = null;
-			elem = dato;
+			for(int i = 0; i<tamanoActual;i++) {
+				if(i == pos) {
+					elems[pos] = null;
+					elems[pos] = dato;
+					
+				}
+			}
 		}
 	}
 	

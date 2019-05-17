@@ -20,6 +20,7 @@ import model.data_structures.Edge;
 import model.data_structures.Graph;
 import model.data_structures.LinearProbing;
 import model.data_structures.MaxHeapCP;
+import model.data_structures.MinHeapCP;
 import model.data_structures.PrimMST;
 import model.data_structures.SeparateChaining;
 import model.data_structures.Vertex;
@@ -834,6 +835,10 @@ public class Controller {
 		}
 		System.out.println("Tamaño arreglo de puntos "+puntos.darTamano());
 		LinearProbing<Long, Vertex<Long,String, Double>> lista= grafo.getV();
+		ArregloDinamico<Vertex<Long, String, Double>> cercanos=new ArregloDinamico<>(20);
+		MinHeapCP<Double> heap=null;
+		LinearProbing<Double, Long> distanciaVertice=new LinearProbing<>(300);
+
 		for(int i=0;i<puntos.darTamano();i++)
 		{
 			String p = puntos.darElem(i);
@@ -841,20 +846,34 @@ public class Controller {
 			String la=p.substring(0, index);
 			int index2=index+1;
 			String lo=  p.substring(index2);
-			System.out.println("Latitud "+la);
-			System.out.println("Longitud "+lo);
+			double laPunto=Double.parseDouble(la);
+			double loPunto=Double.parseDouble(lo);
 			Iterator<Long> it = lista.keys();
 			while(it.hasNext())
 			{
 				Long is = it.next();
 				Vertex<Long, String, Double> v = lista.get(is);
-				
-				
+				double l1 = Double.parseDouble(v.getLatitud());
+				double l2 = Double.parseDouble(v.getLongitud());
+				heap= new MinHeapCP<>();
+				if(l1<laPunto+difLat && l1>laPunto-difLat && l2<loPunto+difLon && l2>loPunto-difLon)
+				{
+					double n= haversine(laPunto, loPunto, l1, l2);
+					heap.agregar(n);
+					distanciaVertice.put(n, v.getId());
+				}
 			}
 
-		}
-		
+			double c = heap.delMax();
+			Long id=distanciaVertice.get(c);
+			Vertex<Long, String, Double> v = lista.get(id);
+			if(cercanos.contains(v)==false)
+			{
+				cercanos.agregar(v);
 
+			}
+			System.out.println(cercanos.darTamano());
+		}
 	}
 
 	// TODO El tipo de retorno de los mï¿½todos puede ajustarse segï¿½n la conveniencia
