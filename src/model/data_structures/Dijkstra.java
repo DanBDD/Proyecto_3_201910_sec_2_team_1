@@ -76,6 +76,7 @@ public class Dijkstra {
      * @throws IllegalArgumentException unless {@code 0 <= s < V}
      */
     public Dijkstra(Graph<Long, String, Double> G, long s) {
+    	System.out.println("Inicio");
     	linGrafo = G.getV();
     	Iterator<Long> it = linGrafo.keys();
     	distTo = new LinearProbing<>(G.V());
@@ -87,46 +88,33 @@ public class Dijkstra {
     			if(v.getEdges().darElem(a).getInfo() < 0) {
                     throw new IllegalArgumentException("edge " + v.getEdges().darElem(a).toString() + " has negative weight");
     			}
+    			System.out.println("Fin ciclo");
     		}
     		distTo.put(i, Double.POSITIVE_INFINITY);
     	}
-     
         validateVertex(s);
 
         distTo.put(s, 0.0);
         pq = new IndexMinPQ<Double>(G.V());
         pq.insert(s, distTo.get(s));
+        System.out.println("Insert");
         while (!pq.isEmpty()) {
             long v = pq.delMin();
             Vertex<Long, String, Double> ver = linGrafo.get(v);
             for(int i = 0; i<ver.getEdges().darTamano();i++) {
             	Edge<Long,String,Double> e = ver.getEdges().darElem(i);
             	relax(e,v);
+            	System.out.println("Relax");
             }
 //            for (Edge<Long,String,Double> e : G.adj(v))
 //                relax(e, v);
         }
-
-        // relax vertices in order of distance from s
-        pq = new MinHeapCP<Double>();
-        pq.agregar(s);
-        
-        while (!pq.estaVacia()) {
-            Long v = pq.delMax();
-            Vertex<Long, String, Double> ver = linGrafo.get(v);
-            
-           for(int b = 0; b<ver.getEdges().darTamano();b++) {
-        	   relax(ver.getEdges().darElem(b));
-           }
-            
-        }
-        
         // check optimality conditions
        // assert check(G, s);
     }
 
     // relax edge e and update pq if changed
-    private void relax(Edge<Long, String, Double> e) {
+    private void relax(Edge<Long, String, Double> e, long v) {
 //    	int w = e.other(v);
 //        if (distTo[w] > distTo[v] + e.weight()) {
 //            distTo[w] = distTo[v] + e.weight();
@@ -134,29 +122,28 @@ public class Dijkstra {
 //            if (pq.contains(w)) pq.decreaseKey(w, distTo[w]);
 //            else                pq.insert(w, distTo[w]);
 //        }
-    	Vertex<Long,String, Double> v = e.getStartVertex();
-    	Vertex<Long, String, Double> w = e.getEndVertex();
-    	double distToW = distTo.get(w.getId());
-    	double distToV = distTo.get(v.getId());
+    	Long a = e.getStartVertex().getId();
+    	Long w = e.getEndVertex().getId();
+    	Long s = null;
+    	if(v == a) {
+    		s = w;
+    	}
+    	else {
+    		s = a;
+    	}
+    	
+    	double distToW = distTo.get(s);
+    	double distToV = distTo.get(v);
+ 
     	if(distToW > distToV + e.getInfo()) {
-    		distToW = distToV + e.getInfo();
-    		distTo.put(w.getId(), distToW);
-    		edgeTo.put(w.getId(), e);
-    		Iterator<Long> iter = pq.iterator();
-    		boolean contains = false;
-    		while(iter.hasNext() && !contains) {
-    			Long actual = iter.next();
-    			if(actual == w.getId()) {
-    				contains = true;
-    				
-    			}
-    		}
-    		if(contains) {
-    			//Decrease?
+    		System.out.println("Entro");
+    		distTo.put(s, distToV + e.getInfo());
+    		edgeTo.put(s, e);
+    		if(pq.contains(s)) {
+    			pq.decreaseKey(s, distTo.get(s));
     		}
     		else {
-    			pq.agregar(w.getId());
-    			//pq.insert(w, distTo[w]);
+    			pq.insert(s, distTo.get(s));
     		}
     	}
 
@@ -187,6 +174,7 @@ public class Dijkstra {
      */
     public boolean hasPathTo(long v) {
         validateVertex(v);
+        System.out.println("has path to " +distTo.get(v));
         return distTo.get(v) < Double.POSITIVE_INFINITY;
     }
 
@@ -199,6 +187,7 @@ public class Dijkstra {
      * @throws IllegalArgumentException unless {@code 0 <= v < V}
      */
     public Iterable<Edge<Long,String,Double>> pathTo(long v) {
+    	
         validateVertex(v);
         if (!hasPathTo(v)) return null;
         Stack<Edge<Long,String,Double>> path = new Stack<Edge<Long,String,Double>>();

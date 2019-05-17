@@ -40,6 +40,10 @@ public class Vertex<K extends Comparable<K>,V,D> implements Comparable<Vertex<K,
 	{
 		return edgs;
 	}
+	public void setEdges(ArregloDinamico<Edge<K, V, D>> arr)
+	{
+		edgs = arr;
+	}
 	public V getLatitud()
 	{
 		return latitud;

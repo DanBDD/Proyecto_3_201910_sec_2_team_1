@@ -20,6 +20,7 @@ import model.data_structures.Edge;
 import model.data_structures.Graph;
 import model.data_structures.LinearProbing;
 import model.data_structures.MaxHeapCP;
+import model.data_structures.PrimMST;
 import model.data_structures.SeparateChaining;
 import model.data_structures.Vertex;
 import model.vo.VOMovingViolations;
@@ -568,7 +569,9 @@ public class Controller {
 				{
 					String i = it2.next();
 					ar2.add(Long.parseLong(i));
+					
 				}
+				
 				grafo.addVertex(Long.parseLong(id), lat+"|"+lon,ar,ar2);
 				grafoR2y9.addVertex(Long.parseLong(id), lat+"|"+lon,ar,ar2);
 				heap.agregar(new Vertex<Long, String, Double>(Long.parseLong(id), lat+"|"+lon, ar,ar2));
@@ -601,11 +604,50 @@ public class Controller {
 				Double peso=  (Double) e.get("peso");
 				Long inicio = (Long) e.get("inicio");
 				Long fin = (Long) e.get("fin");
-
+				
 				grafo.addEdge(inicio, fin, peso);
 				grafoR2y9.addEdge(inicio, fin, (double)grafoR2y9.getV().get(inicio).getCantidadInfracciones());
+				
 			}	
-
+			LinearProbing<Long, Vertex<Long, String, Double>> line = grafo.getV();
+			
+			Iterator<Long> iteGrafo = line.keys();
+			while(iteGrafo.hasNext()) {
+				Long actual = iteGrafo.next();
+				Vertex<Long, String, Double> inicio = line.get(actual);
+				Bag<Long> adya = inicio.getIds();
+				Iterator<Long> ad = adya.iterator();
+				ArregloDinamico<Edge<Long,String,Double>> arre = new ArregloDinamico<>(10);
+				ArregloDinamico<Edge<Long,String,Double>> arre1 = new ArregloDinamico<>(10);
+				while(ad.hasNext()) {
+					Long sig = ad.next();
+					Vertex<Long, String, Double> fin = line.get(sig);
+					double pe = haversine(Double.parseDouble(inicio.getLatitud()), Double.parseDouble(inicio.getLongitud()), Double.parseDouble(fin.getLatitud()), Double.parseDouble(fin.getLongitud()));
+					Edge<Long,String,Double> arco = new Edge<Long, String, Double>(inicio, fin, pe);
+					arre.agregar(arco);
+					
+				}
+				inicio.setEdges(arre);
+				
+			}
+			LinearProbing<Long, Vertex<Long, String, Double>> line1 = grafoR2y9.getV();
+			
+			Iterator<Long> iteGrafo1 = line1.keys();
+			while(iteGrafo1.hasNext()) {
+				Long actual = iteGrafo1.next();
+				Vertex<Long, String, Double> inicio = line1.get(actual);
+				Bag<Long> adya = inicio.getIds();
+				Iterator<Long> ad = adya.iterator();
+				ArregloDinamico<Edge<Long,String,Double>> arre1 = new ArregloDinamico<>(10);
+				while(ad.hasNext()) {
+					Long sig = ad.next();
+					Vertex<Long, String, Double> fin = line1.get(sig);
+					Edge<Long,String,Double> arco = new Edge<Long, String, Double>(inicio, fin, (double)inicio.getCantidadInfracciones());
+					arre1.agregar(arco);
+					
+				}
+				inicio.setEdges(arre1);
+			}
 			System.out.println("Arcos cargados con JSON " + grafo.E());
 		}
 		catch(Exception e )
@@ -654,7 +696,7 @@ public class Controller {
 	public Iterable<Edge<Long, String, Double>> caminoCostoMinimoA1(long idVertice1, long idVertice2)
 	{
 		Dijkstra di = new Dijkstra(grafoR2y9, idVertice1);
-		
+		System.out.println("termino dijkstra");
 		Iterator<Edge<Long, String, Double>> it = di.pathTo(idVertice2).iterator();
 		
 		while(it.hasNext()) {
@@ -770,6 +812,49 @@ public class Controller {
 	public void definirCuadriculaB2(double lonMin, double lonMax, double latMin, double latMax, int columnas,
 			int filas) {
 		// TODO Auto-generated method stub
+		//abajoIzq=lat y long min
+		//abajoDer= lat max, lon min
+		//arribaIzq=lat min, lon max
+		//arribaDer=lat y lon max
+		double  difLat= latMax-latMin;
+		double difLon= lonMax-lonMin;
+		double avancesLon=difLon/(filas-1);
+		double avancesLat=difLat/(columnas-1);
+		ArregloDinamico<String> puntos= new ArregloDinamico<>(200);
+		double lat=latMin;
+		while(lat<=latMax)
+		{
+			double lon=lonMin;
+			while(lon<lonMax+0.1)
+			{
+				puntos.agregar(lat+"|"+lon);
+				lon+=avancesLon;
+			}
+			lat+=avancesLat;
+		}
+		System.out.println("Tamaño arreglo de puntos "+puntos.darTamano());
+		LinearProbing<Long, Vertex<Long,String, Double>> lista= grafo.getV();
+		for(int i=0;i<puntos.darTamano();i++)
+		{
+			String p = puntos.darElem(i);
+			int index=p.indexOf("|");
+			String la=p.substring(0, index);
+			int index2=index+1;
+			String lo=  p.substring(index2);
+			System.out.println("Latitud "+la);
+			System.out.println("Longitud "+lo);
+			Iterator<Long> it = lista.keys();
+			while(it.hasNext())
+			{
+				Long is = it.next();
+				Vertex<Long, String, Double> v = lista.get(is);
+				
+				
+			}
+
+		}
+		
+
 	}
 
 	// TODO El tipo de retorno de los mï¿½todos puede ajustarse segï¿½n la conveniencia
@@ -787,7 +872,8 @@ public class Controller {
 	 */
 	public void arbolMSTPrimC2() {
 		// TODO Auto-generated method stub
-
+		PrimMST p=new PrimMST(grafo);
+		
 	}
 
 	// TODO El tipo de retorno de los mï¿½todos puede ajustarse segï¿½n la conveniencia

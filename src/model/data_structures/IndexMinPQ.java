@@ -58,7 +58,7 @@ public class IndexMinPQ <Key extends Comparable<Key>> implements Iterable<Long> 
 	 * @throws IllegalArgumentException unless {@code 0 <= i < maxN}
 	 */
 	public boolean contains(long s) {
-		return qp.get(s) != -1;
+		return qp.get(s) != null;
 	}
 
 	/**
@@ -80,7 +80,7 @@ public class IndexMinPQ <Key extends Comparable<Key>> implements Iterable<Long> 
 	 *         with index {@code i}
 	 */
 	public void insert(long s, Key key) {
-		if (s < 0 || s >= maxN) throw new IllegalArgumentException();
+		
 		if (contains(s)) throw new IllegalArgumentException("index is already in the priority queue");
 		n++;
 		//        qp[s] = n;
