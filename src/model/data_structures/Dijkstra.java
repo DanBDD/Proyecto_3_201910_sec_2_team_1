@@ -62,10 +62,10 @@ import java.util.Iterator;
  */
 public class Dijkstra {
 
-	private LinearProbing<Long, Integer> distTo;// distTo[v] = distance  of shortest s->v path
-    private LinearProbing<Long, Long> edgeTo;           // edgeTo[v] = last edge on shortest s->v path
-    private MinHeapCP<Integer> pq;    // priority queue of vertices
+	private LinearProbing<Long, Double> distTo;// distTo[v] = distance  of shortest s->v path
+    private LinearProbing<Long, Edge<Long,String,Double>> edgeTo;           // edgeTo[v] = last edge on shortest s->v path
     private LinearProbing<Long, Vertex<Long,String,Double>> linGrafo;
+    private IndexMinPQ<Double> pq;
     /**
      * Computes a shortest-paths tree from the source vertex {@code s} to every
      * other vertex in the edge-weighted graph {@code G}.
@@ -79,42 +79,54 @@ public class Dijkstra {
     	linGrafo = G.getV();
     	Iterator<Long> it = linGrafo.keys();
     	distTo = new LinearProbing<>(G.V());
-        edgeTo = new LinearProbing<>(G.E());
+        edgeTo = new LinearProbing<>(G.V());
     	while(it.hasNext()) {
     		Long i = it.next();
     		Vertex<Long, String, Double> v = linGrafo.get(i);
     		for(int a = 0; a<v.getEdges().darTamano();a++) {
     			if(v.getEdges().darElem(a).getInfo() < 0) {
                     throw new IllegalArgumentException("edge " + v.getEdges().darElem(a).toString() + " has negative weight");
-
     			}
     		}
-    		distTo.put(i, Integer.MAX_VALUE);
+    		distTo.put(i, Double.POSITIVE_INFINITY);
     	}
-       
+     
         validateVertex(s);
 
-        distTo.put(s, 0);
+        distTo.put(s, 0.0);
+        pq = new IndexMinPQ<Double>(G.V());
+        pq.insert(s, distTo.get(s));
+        while (!pq.isEmpty()) {
+            long v = pq.delMin();
+            Vertex<Long, String, Double> ver = linGrafo.get(v);
+            for(int i = 0; i<ver.getEdges().darTamano();i++) {
+            	Edge<Long,String,Double> e = ver.getEdges().darElem(i);
+            	relax(e,v);
+            }
+//            for (Edge<Long,String,Double> e : G.adj(v))
+//                relax(e, v);
+        }
 
         // relax vertices in order of distance from s
-        pq = new MinHeapCP<Integer>();
-        pq.agregar(distTo.get(s));
+        pq = new MinHeapCP<Double>();
+        pq.agregar(s);
+        
         while (!pq.estaVacia()) {
-            long v = pq.delMax();
+            Long v = pq.delMax();
             Vertex<Long, String, Double> ver = linGrafo.get(v);
             
            for(int b = 0; b<ver.getEdges().darTamano();b++) {
-        	   relax(ver.getEdges().darElem(b),v);
+        	   relax(ver.getEdges().darElem(b));
            }
             
         }
-
+        
         // check optimality conditions
        // assert check(G, s);
     }
 
     // relax edge e and update pq if changed
-    private void relax(Edge e, long v) {
+    private void relax(Edge<Long, String, Double> e) {
 //    	int w = e.other(v);
 //        if (distTo[w] > distTo[v] + e.weight()) {
 //            distTo[w] = distTo[v] + e.weight();
@@ -122,13 +134,32 @@ public class Dijkstra {
 //            if (pq.contains(w)) pq.decreaseKey(w, distTo[w]);
 //            else                pq.insert(w, distTo[w]);
 //        }
+    	Vertex<Long,String, Double> v = e.getStartVertex();
     	Vertex<Long, String, Double> w = e.getEndVertex();
-        if (distTo.get(w) > distTo[v] + e.weight()) {
-            distTo[w] = distTo[v] + e.weight();
-            edgeTo[w] = e;
-            if (pq.contains(w)) pq.decreaseKey(w, distTo[w]);
-            else                pq.insert(w, distTo[w]);
-        }
+    	double distToW = distTo.get(w.getId());
+    	double distToV = distTo.get(v.getId());
+    	if(distToW > distToV + e.getInfo()) {
+    		distToW = distToV + e.getInfo();
+    		distTo.put(w.getId(), distToW);
+    		edgeTo.put(w.getId(), e);
+    		Iterator<Long> iter = pq.iterator();
+    		boolean contains = false;
+    		while(iter.hasNext() && !contains) {
+    			Long actual = iter.next();
+    			if(actual == w.getId()) {
+    				contains = true;
+    				
+    			}
+    		}
+    		if(contains) {
+    			//Decrease?
+    		}
+    		else {
+    			pq.agregar(w.getId());
+    			//pq.insert(w, distTo[w]);
+    		}
+    	}
+
     }
 
     /**
@@ -140,9 +171,9 @@ public class Dijkstra {
      *         the vertex {@code v}; {@code Double.POSITIVE_INFINITY} if no such path
      * @throws IllegalArgumentException unless {@code 0 <= v < V}
      */
-    public double distTo(int v) {
+    public double distTo(long v) {
         validateVertex(v);
-        return distTo[v];
+        return distTo.get(v);
     }
 
     /**
@@ -154,9 +185,9 @@ public class Dijkstra {
      *         {@code s} to vertex {@code v}; {@code false} otherwise
      * @throws IllegalArgumentException unless {@code 0 <= v < V}
      */
-    public boolean hasPathTo(int v) {
+    public boolean hasPathTo(long v) {
         validateVertex(v);
-        return distTo[v] < Double.POSITIVE_INFINITY;
+        return distTo.get(v) < Double.POSITIVE_INFINITY;
     }
 
     /**
@@ -167,68 +198,16 @@ public class Dijkstra {
      *         {@code null} if no such path
      * @throws IllegalArgumentException unless {@code 0 <= v < V}
      */
-    public Iterable<Edge> pathTo(int v) {
+    public Iterable<Edge<Long,String,Double>> pathTo(long v) {
         validateVertex(v);
         if (!hasPathTo(v)) return null;
-        Stack<Edge> path = new Stack<Edge>();
-        int x = v;
-        for (Edge e = edgeTo[v]; e != null; e = edgeTo[x]) {
+        Stack<Edge<Long,String,Double>> path = new Stack<Edge<Long,String,Double>>();
+        long x = v;
+        for (Edge<Long,String,Double> e = edgeTo.get(v); e != null; e = edgeTo.get(x)) {
             path.push(e);
-            x = e.other(x);
+            x = e.getEndVertex().getId();
         }
         return path;
-    }
-
-
-    // check optimality conditions:
-    // (i) for all edges e = v-w:            distTo[w] <= distTo[v] + e.weight()
-    // (ii) for all edge e = v-w on the SPT: distTo[w] == distTo[v] + e.weight()
-    private boolean check(Graph G, int s) {
-
-        // check that edge weights are nonnegative
-        for (Edge e : G.edges()) {
-            if (e.weight() < 0) {
-                System.err.println("negative edge weight detected");
-                return false;
-            }
-        }
-
-        // check that distTo[v] and edgeTo[v] are consistent
-        if (distTo[s] != 0.0 || edgeTo[s] != null) {
-            System.err.println("distTo[s] and edgeTo[s] inconsistent");
-            return false;
-        }
-        for (int v = 0; v < G.V(); v++) {
-            if (v == s) continue;
-            if (edgeTo[v] == null && distTo[v] != Double.POSITIVE_INFINITY) {
-                System.err.println("distTo[] and edgeTo[] inconsistent");
-                return false;
-            }
-        }
-
-        // check that all edges e = v-w satisfy distTo[w] <= distTo[v] + e.weight()
-        for (int v = 0; v < G.V(); v++) {
-            for (Edge e : G.adj(v)) {
-                int w = e.other(v);
-                if (distTo[v] + e.weight() < distTo[w]) {
-                    System.err.println("edge " + e + " not relaxed");
-                    return false;
-                }
-            }
-        }
-
-        // check that all edges e = v-w on SPT satisfy distTo[w] == distTo[v] + e.weight()
-        for (int w = 0; w < G.V(); w++) {
-            if (edgeTo[w] == null) continue;
-            Edge e = edgeTo[w];
-            if (w != e.either() && w != e.other(e.either())) return false;
-            int v = e.other(w);
-            if (distTo[v] + e.weight() != distTo[w]) {
-                System.err.println("edge " + e + " on shortest path not tight");
-                return false;
-            }
-        }
-        return true;
     }
 
     // throw an IllegalArgumentException unless {@code 0 <= v < V}

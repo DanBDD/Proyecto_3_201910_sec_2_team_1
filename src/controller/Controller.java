@@ -6,19 +6,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Scanner;
-
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-
 import com.opencsv.CSVReader;
-import com.sun.xml.internal.ws.api.pipe.NextAction;
-
 import model.data_structures.ArregloDinamico;
 import model.data_structures.BFS;
 import model.data_structures.Bag;
 import model.data_structures.DFS;
+import model.data_structures.Dijkstra;
+import model.data_structures.Edge;
 import model.data_structures.Graph;
 import model.data_structures.LinearProbing;
 import model.data_structures.MaxHeapCP;
@@ -651,10 +649,19 @@ public class Controller {
 	 * Requerimiento 1A: Encontrar el camino de costo m�nimo para un viaje entre dos ubicaciones geogr�ficas.
 	 * @param idVertice2 
 	 * @param idVertice1 
+	 * @return 
 	 */
-	public void caminoCostoMinimoA1(int idVertice1, int idVertice2)
+	public Iterable<Edge<Long, String, Double>> caminoCostoMinimoA1(long idVertice1, long idVertice2)
 	{
+		Dijkstra di = new Dijkstra(grafoR2y9, idVertice1);
 		
+		Iterator<Edge<Long, String, Double>> it = di.pathTo(idVertice2).iterator();
+		
+		while(it.hasNext()) {
+			Edge<Long, String, Double> actual = it.next();
+			System.out.println(actual.toString());
+		}
+		return di.pathTo(idVertice2);
 	}
 
 	// TODO El tipo de retorno de los m�todos puede ajustarse seg�n la conveniencia
