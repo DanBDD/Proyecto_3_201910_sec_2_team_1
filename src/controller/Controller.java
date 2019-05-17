@@ -619,7 +619,6 @@ public class Controller {
 				Bag<Long> adya = inicio.getIds();
 				Iterator<Long> ad = adya.iterator();
 				ArregloDinamico<Edge<Long,String,Double>> arre = new ArregloDinamico<>(10);
-				ArregloDinamico<Edge<Long,String,Double>> arre1 = new ArregloDinamico<>(10);
 				while(ad.hasNext()) {
 					Long sig = ad.next();
 					Vertex<Long, String, Double> fin = line.get(sig);
