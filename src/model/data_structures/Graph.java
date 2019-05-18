@@ -8,15 +8,35 @@ public class Graph<K extends Comparable<K>,V,D> implements IGraph<K, V, D>{
 	private int E;
 	private LinearProbing<K,Vertex<K,V,D>> vertices;
 	private SeparateChaining<K, ArregloDinamico<Edge<K, V, D>>> edges;
-	private SeparateChaining<K, ArregloDinamico<Edge<K, V, D>>> directedEdges;
+	//hash de referencia
+	private LinearProbing<Integer,K> indice;
+	private LinearProbing<K, Integer> indiceT;
+
+	//hash para usar el los metodos
+	//arbol para ver los arcos existentes en el GD
 	private RedBlackBST<String, Edge<K,V,D>> rb;
 	public Graph()
 	{
 		V=0;
 		E=0;
-		vertices= new LinearProbing<>(3);
+		vertices= new LinearProbing<>(2000);
 		edges= new SeparateChaining<>();
 		rb= new RedBlackBST<>();
+		indice=new LinearProbing<>(2000);
+		indiceT=new LinearProbing<>(2000);
+	}
+	public void crearTablas()
+	{
+		Iterator<K> ver = vertices.keys();
+		int contador=0;
+		while(ver.hasNext())
+		{
+			K a = ver.next();
+			indice.put(contador, a);
+			indiceT.put(a, contador);
+			contador++;
+		}
+		
 	}
 	public LinearProbing<K,Vertex<K,V,D>> getV()
 	{
@@ -111,7 +131,6 @@ public class Graph<K extends Comparable<K>,V,D> implements IGraph<K, V, D>{
 				e.setInfo(info);
 			}
 		}
-
 	}
 
 	@Override
@@ -146,4 +165,17 @@ public class Graph<K extends Comparable<K>,V,D> implements IGraph<K, V, D>{
 		}
 		E++;
 	}
+	public LinearProbing<Integer,K> getIndice() {
+		return indice;
+	}
+	public void setIndice(LinearProbing<Integer,K> indice) {
+		this.indice = indice;
+	}
+	public LinearProbing<K,Integer> getIndiceT() {
+		return indiceT;
+	}
+	public void setIndiceT(LinearProbing<K,Integer> indiceT) {
+		this.indiceT = indiceT;
+	}
+
 }

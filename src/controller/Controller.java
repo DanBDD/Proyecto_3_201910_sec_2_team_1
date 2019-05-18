@@ -104,10 +104,7 @@ public class Controller {
 	//	private ArregloDinamico<Long> nodos ;
 	//hash del grafo
 	private Graph<Long, String, Double> grafo;
-	//hash de referencia
-	private LinearProbing<Integer,Long> indice;
-	//hash para usar el los metodos
-	private LinearProbing<Integer, Integer> metodo;
+
 	private Graph<Long, String, Double> grafoR2y9;
 
 
@@ -128,8 +125,7 @@ public class Controller {
 		arregloIdsGrafo=new ArregloDinamico<>(3000);
 		heap= new MaxHeapCP<>();
 		grafoR2y9= new Graph<Long, String, Double>();
-		indice= new LinearProbing<>(grafoR2y9.E());
-		metodo= new LinearProbing<>(grafoR2y9.V());
+
 	}
 	/**
 	 * Metodo encargado de ejecutar los  requerimientos segun la opcion indicada por el usuario
@@ -148,8 +144,8 @@ public class Controller {
 			view.printMenu();
 
 			int option = sc.nextInt();
-			int idVertice1 = 0;
-			int idVertice2 = 0;
+			long idVertice1 = 0;
+			long idVertice2 = 0;
 
 
 			switch(option){
@@ -167,13 +163,12 @@ public class Controller {
 				break;
 
 			case 1:
-
 				view.printMessage("Ingrese El id del primer vertice (Ej. 901839): ");
-				idVertice1 = sc.nextInt();
+				idVertice1 = sc.nextLong();
 				view.printMessage("Ingrese El id del segundo vertice (Ej. 901839): ");
-				idVertice2 = sc.nextInt();
+				idVertice2 = sc.nextLong();
 
-
+				grafoR2y9.crearTablas();
 				startTime = System.currentTimeMillis();
 				caminoCostoMinimoA1(idVertice1, idVertice2);
 				endTime = System.currentTimeMillis();
@@ -571,7 +566,7 @@ public class Controller {
 				for(Long adj:ar2)
 				{
 					grafo.addEdge(Long.parseLong(id), adj, 0.0);
-					
+
 					Vertex<Long, String, Double> inicio = grafoR2y9.getV().get(Long.parseLong(id));
 					grafoR2y9.addDirectedEdge(Long.parseLong(id), adj, inicio.getCantidadInfracciones());
 				}
@@ -595,7 +590,6 @@ public class Controller {
 					grafo.setInfoEdge(t, idFin, peso);
 				}
 			}
-			//
 			System.out.println("Vertices cargados "+grafo.V());
 			System.out.println("Arcos cargados "+grafo.E());
 			System.out.println("Grafo Dirigido tiene "+grafoR2y9.V()+" vertices y "+grafoR2y9.E()+" arcos.");
@@ -649,18 +643,16 @@ public class Controller {
 	 * @param idVertice1 
 	 * @return 
 	 */
-	public Iterable<Edge<Long, String, Double>> caminoCostoMinimoA1(long idVertice1, long idVertice2)
+	public void caminoCostoMinimoA1(long idVertice1, long idVertice2)
 	{
-
-		DijkstraSP di = new DijkstraSP(grafoR2y9, idVertice1);
-		System.out.println("termino dijkstra");
-		Iterator<Edge<Long, String, Double>> it = di.pathTo(idVertice2).iterator();
-
-		while(it.hasNext()) {
-			Edge<Long, String, Double> actual = it.next();
-			System.out.println(actual.toString());
+		DijkstraSP d= new DijkstraSP(grafoR2y9, idVertice1);
+		Iterable<Edge<Long, String, Double>> p = d.pathTo(grafoR2y9.getIndiceT().get(idVertice2));
+		Iterator<Edge<Long, String, Double>> i = p.iterator();
+		while(i.hasNext())
+		{
+			Edge<Long,String,Double> e = i.next();
+			System.out.println("Inicio "+e.getStartVertexId()+" Final "+e.getEndVertexId());
 		}
-		return di.pathTo(idVertice2);
 	}
 
 	// TODO El tipo de retorno de los m�todos puede ajustarse seg�n la conveniencia
@@ -867,7 +859,7 @@ public class Controller {
 	 * @param idVertice2 
 	 * @param idVertice1 
 	 */
-	public void caminoMasCortoC4(int idVertice1, int idVertice2) {
+	public void caminoMasCortoC4(long idVertice1, long idVertice2) {
 		// TODO Auto-generated method stub
 
 	}
