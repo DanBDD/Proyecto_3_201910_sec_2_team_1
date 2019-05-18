@@ -5,15 +5,15 @@ public class Edge<K extends Comparable <K>,V, D> implements Comparable<Edge<K,V,
 	//Puede ser el peso u otra informacion
 
 	private D peso;
-	private Vertex<K,V,D> startVertex;
-	private Vertex<K,V,D> endVertex;
+	private K startVertex;
+	private K endVertex;
 	private boolean marked;
 
-	public Edge( Vertex<K,V,D> startVertex, Vertex<K,V,D> endVertex, D pPeso)
+	public Edge( K idVertexIni, K idVertexFin, D pPeso)
 	{	
 
-		this.startVertex=startVertex;
-		this.endVertex=endVertex;
+		this.startVertex=idVertexIni;
+		this.endVertex=idVertexFin;
 		this.peso = pPeso;
 		marked=false;
 	}
@@ -32,25 +32,25 @@ public class Edge<K extends Comparable <K>,V, D> implements Comparable<Edge<K,V,
 		this.peso = newPeso;
 	}
 	
-	public Vertex<K,V,D> getStartVertex()
+	public K getStartVertexId()
 	{
 		return startVertex;
 	}
-	public Vertex<K,V,D> getEndVertex()
+	public K getEndVertexId()
 	{
 		return endVertex;
 	}
 
-	public void setStartVertex(Vertex<K,V,D> newStartVertex)
+	public void setStartVertexId(K newStartVertex)
 	{
 		this.startVertex=newStartVertex;
 	}
-	public void setEndVertex(Vertex<K,V,D> newEndVertex)
+	public void setEndVertexiD(K newEndVertex)
 	{
 		this.startVertex=newEndVertex;
 	}
 	public String toString() {
-		return "Arco vertice ini " + getStartVertex().darInfoVertice() + " vertice fin " + getEndVertex().darInfoVertice();
+		return "Arco vertice ini " + getStartVertexId() + " vertice fin " + getEndVertexId();
 	}
 	@Override
 	public int compareTo(Edge<K, V, D> arg0) {

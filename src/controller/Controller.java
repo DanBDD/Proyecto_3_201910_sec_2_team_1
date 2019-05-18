@@ -11,11 +11,13 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import com.opencsv.CSVReader;
+import com.sun.xml.internal.bind.v2.runtime.output.StAXExStreamWriterOutput;
+
 import model.data_structures.ArregloDinamico;
 import model.data_structures.BFS;
 import model.data_structures.Bag;
 import model.data_structures.DFS;
-import model.data_structures.Dijkstra;
+import model.data_structures.DijkstraSP;
 import model.data_structures.Edge;
 import model.data_structures.Graph;
 import model.data_structures.LinearProbing;
@@ -100,8 +102,12 @@ public class Controller {
 	//	private boolean repetido;
 	//
 	//	private ArregloDinamico<Long> nodos ;
-
+	//hash del grafo
 	private Graph<Long, String, Double> grafo;
+	//hash de referencia
+	private LinearProbing<Integer,Long> indice;
+	//hash para usar el los metodos
+	private LinearProbing<Integer, Integer> metodo;
 	private Graph<Long, String, Double> grafoR2y9;
 
 
@@ -122,8 +128,9 @@ public class Controller {
 		arregloIdsGrafo=new ArregloDinamico<>(3000);
 		heap= new MaxHeapCP<>();
 		grafoR2y9= new Graph<Long, String, Double>();
+		indice= new LinearProbing<>(grafoR2y9.E());
+		metodo= new LinearProbing<>(grafoR2y9.V());
 	}
-
 	/**
 	 * Metodo encargado de ejecutar los  requerimientos segun la opcion indicada por el usuario
 	 */
@@ -149,25 +156,10 @@ public class Controller {
 
 			case 0:
 				String RutaArchivoVertices = "";
-				String RutaArchivoArcos="";
-				view.printMessage("Escoger el grafo a cargar: (1) Downtown  o (2)Ciudad Completa.");
-				int ruta = sc.nextInt();
-				if(ruta == 1)
-				{
-					RutaArchivoVertices = ""; //TODO Dar la ruta del archivo de Downtown
-					RutaArchivoArcos="";
-				}
 
-				else
-				{
-					RutaArchivoVertices = "./data/finalGraph.json"; //TODO Dar la ruta del archivo de la ciudad completa
-					RutaArchivoArcos="./data/arcosGrande.json";
-
-				}
-
+				RutaArchivoVertices = "./data/finalGraph.json"; //TODO Dar la ruta del archivo de la ciudad completa
 				startTime = System.currentTimeMillis();
 				loadJSONVertices(RutaArchivoVertices);
-				loadJSONArcos(RutaArchivoArcos);
 				endTime = System.currentTimeMillis();
 				duration = endTime - startTime;
 				view.printMessage("Tiempo del requerimiento: " + duration + " milisegundos");
@@ -570,15 +562,43 @@ public class Controller {
 				{
 					String i = it2.next();
 					ar2.add(Long.parseLong(i));
-					
 				}
-				
+
 				grafo.addVertex(Long.parseLong(id), lat+"|"+lon,ar,ar2);
+
 				grafoR2y9.addVertex(Long.parseLong(id), lat+"|"+lon,ar,ar2);
+
+				for(Long adj:ar2)
+				{
+					grafo.addEdge(Long.parseLong(id), adj, 0.0);
+					
+					Vertex<Long, String, Double> inicio = grafoR2y9.getV().get(Long.parseLong(id));
+					grafoR2y9.addDirectedEdge(Long.parseLong(id), adj, inicio.getCantidadInfracciones());
+				}
 				heap.agregar(new Vertex<Long, String, Double>(Long.parseLong(id), lat+"|"+lon, ar,ar2));
 				arregloIdsGrafo.agregar(Long.parseLong(id));
 			}
+			SeparateChaining<Long, ArregloDinamico<Edge<Long, String, Double>>> ed = grafo.getEdges();
+			Iterable<Long> ittt = ed.keys();
+			Iterator<Long> it2 = ittt.iterator();
+			while(it2.hasNext())
+			{
+				Long t=it2.next();//indice vertice inicio
+				Vertex<Long, String, Double> r = grafo.getV().get(t);
+				ArregloDinamico<Edge<Long, String, Double>> ver = ed.get(t);
+				for(int i=0;i<ver.darTamano();i++)
+				{
+					Edge<Long, String, Double> e = ver.darElem(i);
+					Long idFin=e.getEndVertexId();
+					Vertex<Long, String, Double> r2 = grafo.getV().get(idFin);
+					double peso= haversine(Double.parseDouble(r.getLatitud()), Double.parseDouble(r.getLongitud()), Double.parseDouble(r2.getLatitud()), Double.parseDouble(r2.getLongitud()));
+					grafo.setInfoEdge(t, idFin, peso);
+				}
+			}
+			//
 			System.out.println("Vertices cargados "+grafo.V());
+			System.out.println("Arcos cargados "+grafo.E());
+			System.out.println("Grafo Dirigido tiene "+grafoR2y9.V()+" vertices y "+grafoR2y9.E()+" arcos.");
 		} 
 		catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -590,71 +610,7 @@ public class Controller {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}	
-	private void loadJSONArcos(String rutaArchivo)
-	{
-		try{
-			JSONParser parser = new JSONParser();
-			JSONArray a = (JSONArray) parser.parse(new FileReader(rutaArchivo));
-			for (Object o : a)
-			{
-				JSONObject actual = (JSONObject) o;
-
-				JSONObject e = (JSONObject) actual.get("arco");
-
-				Double peso=  (Double) e.get("peso");
-				Long inicio = (Long) e.get("inicio");
-				Long fin = (Long) e.get("fin");
-				
-				grafo.addEdge(inicio, fin, peso);
-				grafoR2y9.addEdge(inicio, fin, (double)grafoR2y9.getV().get(inicio).getCantidadInfracciones());
-				
-			}	
-			LinearProbing<Long, Vertex<Long, String, Double>> line = grafo.getV();
-			
-			Iterator<Long> iteGrafo = line.keys();
-			while(iteGrafo.hasNext()) {
-				Long actual = iteGrafo.next();
-				Vertex<Long, String, Double> inicio = line.get(actual);
-				Bag<Long> adya = inicio.getIds();
-				Iterator<Long> ad = adya.iterator();
-				ArregloDinamico<Edge<Long,String,Double>> arre = new ArregloDinamico<>(10);
-				while(ad.hasNext()) {
-					Long sig = ad.next();
-					Vertex<Long, String, Double> fin = line.get(sig);
-					double pe = haversine(Double.parseDouble(inicio.getLatitud()), Double.parseDouble(inicio.getLongitud()), Double.parseDouble(fin.getLatitud()), Double.parseDouble(fin.getLongitud()));
-					Edge<Long,String,Double> arco = new Edge<Long, String, Double>(inicio, fin, pe);
-					arre.agregar(arco);
-					
-				}
-				inicio.setEdges(arre);
-				
-			}
-			LinearProbing<Long, Vertex<Long, String, Double>> line1 = grafoR2y9.getV();
-			
-			Iterator<Long> iteGrafo1 = line1.keys();
-			while(iteGrafo1.hasNext()) {
-				Long actual = iteGrafo1.next();
-				Vertex<Long, String, Double> inicio = line1.get(actual);
-				Bag<Long> adya = inicio.getIds();
-				Iterator<Long> ad = adya.iterator();
-				ArregloDinamico<Edge<Long,String,Double>> arre1 = new ArregloDinamico<>(10);
-				while(ad.hasNext()) {
-					Long sig = ad.next();
-					Vertex<Long, String, Double> fin = line1.get(sig);
-					Edge<Long,String,Double> arco = new Edge<Long, String, Double>(inicio, fin, (double)inicio.getCantidadInfracciones());
-					arre1.agregar(arco);
-					
-				}
-				inicio.setEdges(arre1);
-			}
-			System.out.println("Arcos cargados con JSON " + grafo.E());
-		}
-		catch(Exception e )
-		{e.printStackTrace();}
-
-	}
-
+	}		
 	public Comparable<VOMovingViolations> [ ] generarMuestraVertices( int n )
 	{
 		muestraVertices = new Comparable[ n ];
@@ -695,10 +651,11 @@ public class Controller {
 	 */
 	public Iterable<Edge<Long, String, Double>> caminoCostoMinimoA1(long idVertice1, long idVertice2)
 	{
-		Dijkstra di = new Dijkstra(grafoR2y9, idVertice1);
+
+		DijkstraSP di = new DijkstraSP(grafoR2y9, idVertice1);
 		System.out.println("termino dijkstra");
 		Iterator<Edge<Long, String, Double>> it = di.pathTo(idVertice2).iterator();
-		
+
 		while(it.hasNext()) {
 			Edge<Long, String, Double> actual = it.next();
 			System.out.println(actual.toString());
@@ -832,7 +789,7 @@ public class Controller {
 			}
 			lat+=avancesLat;
 		}
-		System.out.println("Tamaño arreglo de puntos "+puntos.darTamano());
+		System.out.println("Tamaï¿½o arreglo de puntos "+puntos.darTamano());
 		LinearProbing<Long, Vertex<Long,String, Double>> lista= grafo.getV();
 		ArregloDinamico<Vertex<Long, String, Double>> cercanos=new ArregloDinamico<>(20);
 		MinHeapCP<Double> heap=null;
@@ -891,7 +848,7 @@ public class Controller {
 	public void arbolMSTPrimC2() {
 		// TODO Auto-generated method stub
 		PrimMST p=new PrimMST(grafo);
-		
+
 	}
 
 	// TODO El tipo de retorno de los mï¿½todos puede ajustarse segï¿½n la conveniencia
