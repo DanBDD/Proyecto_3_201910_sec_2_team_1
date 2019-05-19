@@ -1,7 +1,5 @@
 package model.data_structures;
 
-import java.util.Iterator;
-
 /******************************************************************************
  *  Compilation:  javac PrimMST.java
  *  Execution:    java PrimMST filename.txt
@@ -38,7 +36,8 @@ import java.util.Iterator;
  *  ...
  *  647.66307
  *
- ******************************************************************
+ ******************************************************************************/
+
 /**
  *  The {@code PrimMST} class represents a data type for computing a
  *  <em>minimum spanning tree</em> in an edge-weighted graph.
@@ -67,77 +66,95 @@ import java.util.Iterator;
  *  @author Kevin Wayne
  */
 public class PrimMST {
-    private static final double FLOATING_POINT_EPSILON = 1E-12;
+	private static final double FLOATING_POINT_EPSILON = 1E-12;
 
-    private LinearProbing<Long, Edge<Long, String, Double>> edgeTo;
-    private LinearProbing<Long, Double> distTo;
-    private LinearProbing<Long, Boolean> marked;
-    private IndexMinPQ<Double> pq;
-    private LinearProbing<Long, Vertex<Long, String, Double>> lista;
+	private Edge<Long,String,Double>[] edgeTo;        // edgeTo[v] = shortest edge from tree vertex to non-tree vertex
+	private double[] distTo;      // distTo[v] = weight of shortest such edge
+	private boolean[] marked;     // marked[v] = true if v on tree, false otherwise
+	private IndexMinPQ<Double> pq;
+	private LinearProbing<Integer, Long> indice;
+	private LinearProbing<Long, Vertex<Long,String,Double>> lista;
+	private LinearProbing<Long, Integer> indiceT;
 
-    /**
-     * Compute a minimum spanning tree (or forest) of an edge-weighted graph.
-     * @param G the edge-weighted graph
-     */
-    public PrimMST(Graph<Long, String, Double> G) {
-        edgeTo = new LinearProbing<>(G.V());
-        distTo = new LinearProbing<>(G.V());
-        marked = new LinearProbing<>(G.V());
-        pq = new IndexMinPQ<Double>(G.V());
-        lista=G.getV();
-        Iterator<Long> it = lista.keys();
-        while(it.hasNext())
-        {
-        	Long i=it.next();
-        	distTo.put(i, Double.POSITIVE_INFINITY);
-     
-        	if(marked.get(i)==false)
-        	{
-        		prim(G,i);
-        	}
-        }
-    }
+	/**
+	 * Compute a minimum spanning tree (or forest) of an edge-weighted graph.
+	 * @param G the edge-weighted graph
+	 */
+	public PrimMST(Graph<Long,String,Double> G) {
+		edgeTo = new Edge[G.V()];
+		distTo = new double[G.V()];
+		marked = new boolean[G.V()];
+		pq = new IndexMinPQ<Double>(G.V());
+		indice=G.getIndice();
+		lista=G.getV();
+		indiceT=G.getIndiceT();
+		for (int v = 0; v < G.V(); v++)
+			distTo[v] = Double.POSITIVE_INFINITY;
 
-    // run Prim's algorithm in graph G, starting from vertex s
-    private void prim(Graph<Long, String, Double> G, long s) {
-        distTo.put(s, 0.0);
-        pq.insert(s, distTo.get(s));
-        while (!pq.isEmpty()) {
-            long v = pq.delMin();
-            scan(G, v);
-        }
-    }
+		for (int v = 0; v < G.V(); v++)      // run from each vertex to find
+			if (!marked[v]) prim(G, v);      // minimum spanning forest
 
-    // scan vertex v
-    private void scan(Graph G, long v) {
-        marked.put(v, true);
-        Iterator<Long> it = lista.keys();
-        while(it.hasNext())
-        {
-        	Long i = it.next();
-            Vertex<Long, String, Double> r = lista.get(i);
-            for(int j=0;j<r.getEdges().darTamano();j++)
-            {
-            	Edge<Long, String, Double> e = r.getEdges().darElem(j);
-            	Vertex<Long, String, Double> inicio = e.getStartVertex();
-            	Vertex<Long, String, Double> fin = e.getEndVertex();
-            	long w=0L;
-            	if(v==inicio.getId())
-            	{
-            		w=fin.getId();
-            	}
-            	else
-            	{
-            		w=inicio.getId();
-            	}
-            	if(marked.get(w))continue;
-            	if(e.getInfo()<distTo.get(w)) {
-            		distTo.put(w, e.getInfo());
-            		edgeTo.put(w, e);
-            		if (pq.contains(w)) pq.decreaseKey(w, distTo.get(w));
-                    else                pq.insert(w, distTo.get(w));
-            	}
-            }
-        }
-    }
+	}
+
+	// run Prim's algorithm in graph G, starting from vertex s
+	private void prim(Graph<Long,String,Double> G, int s) {
+		distTo[s] = 0.0;
+		pq.insert(s, distTo[s]);
+		while (!pq.isEmpty()) {
+			int v = pq.delMin();
+			scan(G, v);
+		}
+	}
+
+	// scan vertex v
+	private void scan(Graph<Long,String,Double> G, int v) {
+		marked[v] = true;
+		long n=indice.get(v);
+		ArregloDinamico<Edge<Long, String, Double>> ae = G.getEdges().get(n);
+		for(int i=0;i<ae.darTamano();i++) {
+			Edge<Long, String, Double> e = ae.darElem(i);
+			Long we=0L;
+			if(e.getEndVertexId().equals(n))
+			{
+				we=e.getStartVertexId();
+			}
+			else
+				we=e.getEndVertexId();
+			int ws=indiceT.get(we);
+			if (marked[ws]) continue;         // v-w is obsolete edge
+			if (e.getInfo() < distTo[ws]) {
+				distTo[ws] = e.getInfo();
+				edgeTo[ws] = e;
+				if (pq.contains(ws)) pq.decreaseKey(ws, distTo[ws]);
+				else                pq.insert(ws, distTo[ws]);
+			}
+		}
+	}
+
+	/**
+	 * Returns the edges in a minimum spanning tree (or forest).
+	 * @return the edges in a minimum spanning tree (or forest) as
+	 *    an iterable of edges
+	 */
+	public Iterable<Edge<Long,String,Double>> edges() {
+		Cola<Edge<Long,String,Double>> mst = new Cola<Edge<Long,String,Double>>();
+		for (int v = 0; v < edgeTo.length; v++) {
+			Edge<Long,String,Double> e = edgeTo[v];
+			if (e != null) {
+				mst.enqueue(e);
+			}
+		}
+		return mst;
+	}
+
+	/**
+	 * Returns the sum of the edge weights in a minimum spanning tree (or forest).
+	 * @return the sum of the edge weights in a minimum spanning tree (or forest)
+	 */
+	public double weight() {
+		double weight = 0.0;
+		for (Edge<Long,String,Double> e : edges())
+			weight += e.getInfo();
+		return weight;
+	}
 }

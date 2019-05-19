@@ -106,6 +106,8 @@ public class Controller {
 	private Graph<Long, String, Double> grafo;
 
 	private Graph<Long, String, Double> grafoR2y9;
+	
+	private Graph<Long,String,Double> grafo3;
 
 
 	private Comparable[] muestraVertices;
@@ -125,7 +127,7 @@ public class Controller {
 		arregloIdsGrafo=new ArregloDinamico<>(3000);
 		heap= new MaxHeapCP<>();
 		grafoR2y9= new Graph<Long, String, Double>();
-
+		grafo3= new Graph<>();
 	}
 	/**
 	 * Metodo encargado de ejecutar los  requerimientos segun la opcion indicada por el usuario
@@ -277,7 +279,7 @@ public class Controller {
 				break;
 
 			case 6:
-
+				grafo3.crearTablas();
 				startTime = System.currentTimeMillis();
 				arbolMSTPrimC2();
 				endTime = System.currentTimeMillis();
@@ -719,6 +721,33 @@ public class Controller {
 			}
 		}
 		Bag<Long> max = h.delMax();
+		for(Long d: max)
+		{
+			String lat=linGrande.get(d).getLatitud();
+			String lon=linGrande.get(d).getLongitud();
+			ArregloDinamico<String> arr = linGrande.get(d).getInfracciones();
+			Bag<Long> b = linGrande.get(d).getIds();
+			grafo3.addVertex(d, lat+"|"+lon, arr, b);
+		}
+		LinearProbing<Long, Vertex<Long, String, Double>> ie = grafo3.getV();
+		Iterator<Long> i = ie.keys();
+		while(i.hasNext())
+		{
+			Long a = i.next();
+			Vertex<Long, String, Double> ver = ie.get(a);
+			Bag<Long> ba = ver.getIds();
+			for(long b:ba)
+			{
+				if(ie.get(b)!=null)
+				{
+					Vertex<Long, String, Double> ver2 = ie.get(b);
+					double peso= haversine(Double.parseDouble(ver.getLatitud()), Double.parseDouble(ver.getLongitud()), Double.parseDouble(ver2.getLatitud()), Double.parseDouble(ver2.getLongitud()));
+					grafo3.addEdge(a, b, peso);
+				}
+			}
+		}
+		System.out.println("Vertices "+grafo3.V());
+		System.out.println("Arcos "+grafo3.E());
 		//en el bag estan los vertices del componente conexo mayor
 		System.out.println("Numeros de componentes: "+componentes);
 	}
@@ -818,7 +847,6 @@ public class Controller {
 			if(cercanos.contains(v)==false)
 			{
 				cercanos.agregar(v);
-
 			}
 			System.out.println(cercanos.darTamano());
 		}
@@ -839,8 +867,14 @@ public class Controller {
 	 */
 	public void arbolMSTPrimC2() {
 		// TODO Auto-generated method stub
-		PrimMST p=new PrimMST(grafo);
-
+		PrimMST p=new PrimMST(grafo3);
+		Iterable<Edge<Long,String,Double>> pa=p.edges();
+		Iterator<Edge<Long, String, Double>> i = pa.iterator();
+		while(i.hasNext())
+		{
+			System.out.println(i.next());
+		}
+		System.out.println("El peso total del arbol es de "+p.weight());
 	}
 
 	// TODO El tipo de retorno de los m�todos puede ajustarse seg�n la conveniencia

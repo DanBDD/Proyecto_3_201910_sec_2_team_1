@@ -19,11 +19,11 @@ public class Graph<K extends Comparable<K>,V,D> implements IGraph<K, V, D>{
 	{
 		V=0;
 		E=0;
-		vertices= new LinearProbing<>(2000);
+		vertices= new LinearProbing<>(745747);
 		edges= new SeparateChaining<>();
 		rb= new RedBlackBST<>();
-		indice=new LinearProbing<>(2000);
-		indiceT=new LinearProbing<>(2000);
+		indice=new LinearProbing<>(745747);
+		indiceT=new LinearProbing<>(745747);
 	}
 	public void crearTablas()
 	{
