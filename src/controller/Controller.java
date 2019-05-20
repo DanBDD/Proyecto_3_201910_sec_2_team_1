@@ -20,6 +20,7 @@ import model.data_structures.DFS;
 import model.data_structures.DijkstraSP;
 import model.data_structures.Edge;
 import model.data_structures.Graph;
+import model.data_structures.KruskalMST;
 import model.data_structures.LinearProbing;
 import model.data_structures.MaxHeapCP;
 import model.data_structures.MinHeapCP;
@@ -106,7 +107,7 @@ public class Controller {
 	private Graph<Long, String, Double> grafo;
 
 	private Graph<Long, String, Double> grafoR2y9;
-	
+
 	private Graph<Long,String,Double> grafo3;
 
 
@@ -279,7 +280,6 @@ public class Controller {
 				break;
 
 			case 6:
-				grafo3.crearTablas();
 				startTime = System.currentTimeMillis();
 				arbolMSTPrimC2();
 				endTime = System.currentTimeMillis();
@@ -294,7 +294,6 @@ public class Controller {
 				break;
 
 			case 7:
-
 				startTime = System.currentTimeMillis();
 				caminoCostoMinimoDijkstraC3();
 				endTime = System.currentTimeMillis();
@@ -578,6 +577,8 @@ public class Controller {
 			SeparateChaining<Long, ArregloDinamico<Edge<Long, String, Double>>> ed = grafo.getEdges();
 			Iterable<Long> ittt = ed.keys();
 			Iterator<Long> it2 = ittt.iterator();
+			int suma=0;
+			int contador=0;
 			while(it2.hasNext())
 			{
 				Long t=it2.next();//indice vertice inicio
@@ -590,8 +591,20 @@ public class Controller {
 					Vertex<Long, String, Double> r2 = grafo.getV().get(idFin);
 					double peso= haversine(Double.parseDouble(r.getLatitud()), Double.parseDouble(r.getLongitud()), Double.parseDouble(r2.getLatitud()), Double.parseDouble(r2.getLongitud()));
 					grafo.setInfoEdge(t, idFin, peso);
+					double lat=Double.parseDouble(r.getLatitud())-Double.parseDouble(r2.getLatitud());
+					double lon=Double.parseDouble(r.getLongitud())-Double.parseDouble(r2.getLongitud());
+					double lat2=lat*lat;
+					double lon2=lon*lon;
+					double d=Math.sqrt(lat2+lon2);
+					suma+=d;
+
+					contador++;
 				}
 			}
+			System.out.println("Suma "+suma);
+			System.out.println("Contador "+contador);
+			double promedio = suma/contador;
+			System.out.println("Promedio "+promedio);
 			System.out.println("Vertices cargados "+grafo.V());
 			System.out.println("Arcos cargados "+grafo.E());
 			System.out.println("Grafo Dirigido tiene "+grafoR2y9.V()+" vertices y "+grafoR2y9.E()+" arcos.");
@@ -794,8 +807,9 @@ public class Controller {
 		//abajoDer= lat max, lon min
 		//arribaIzq=lat min, lon max
 		//arribaDer=lat y lon max
-		double  difLat= latMax-latMin;
-		double difLon= lonMax-lonMin;
+
+		double  difLat= Math.abs(latMax-latMin);
+		double difLon= Math.abs(lonMax-lonMin);
 		double avancesLon=difLon/(filas-1);
 		double avancesLat=difLat/(columnas-1);
 		ArregloDinamico<String> puntos= new ArregloDinamico<>(200);
@@ -803,7 +817,7 @@ public class Controller {
 		while(lat<=latMax)
 		{
 			double lon=lonMin;
-			while(lon<lonMax+0.1)
+			while(lon<=lonMax)
 			{
 				puntos.agregar(lat+"|"+lon);
 				lon+=avancesLon;
@@ -813,9 +827,9 @@ public class Controller {
 		System.out.println("Tama�o arreglo de puntos "+puntos.darTamano());
 		LinearProbing<Long, Vertex<Long,String, Double>> lista= grafo.getV();
 		ArregloDinamico<Vertex<Long, String, Double>> cercanos=new ArregloDinamico<>(20);
-		MinHeapCP<Double> heap=null;
 		LinearProbing<Double, Long> distanciaVertice=new LinearProbing<>(300);
-
+		ArrayList<Double> a= new ArrayList<>();
+		int c1=0;
 		for(int i=0;i<puntos.darTamano();i++)
 		{
 			String p = puntos.darElem(i);
@@ -826,29 +840,43 @@ public class Controller {
 			double laPunto=Double.parseDouble(la);
 			double loPunto=Double.parseDouble(lo);
 			Iterator<Long> it = lista.keys();
+			MinHeapCP<Double> heaps=new MinHeapCP<>();
 			while(it.hasNext())
 			{
 				Long is = it.next();
 				Vertex<Long, String, Double> v = lista.get(is);
 				double l1 = Double.parseDouble(v.getLatitud());
 				double l2 = Double.parseDouble(v.getLongitud());
-				heap= new MinHeapCP<>();
-				if(l1<laPunto+difLat && l1>laPunto-difLat && l2<loPunto+difLon && l2>loPunto-difLon)
+				if(l1<=latMax)
 				{
-					double n= haversine(laPunto, loPunto, l1, l2);
-					heap.agregar(n);
-					distanciaVertice.put(n, v.getId());
+					if(l1>=latMin)
+					{
+						if(l2<=lonMax)
+						{
+							if(l2>=lonMin)
+							{
+								double n= haversine(laPunto, loPunto, l1, l2);
+								heaps.agregar(n);
+								distanciaVertice.put(n, v.getId());
+							}
+
+						}
+
+					}
+
 				}
 			}
-
-			double c = heap.delMax();
+			double c = heaps.delMax();
 			Long id=distanciaVertice.get(c);
 			Vertex<Long, String, Double> v = lista.get(id);
-			if(cercanos.contains(v)==false)
-			{
-				cercanos.agregar(v);
-			}
-			System.out.println(cercanos.darTamano());
+
+			cercanos.agregar(v);
+
+		}
+		System.out.println("Vertices cercanos "+cercanos.darTamano());
+		for(int i=0;i<cercanos.darTamano();i++)
+		{
+			System.out.println(cercanos.darElem(i).darInfoVertice());
 		}
 	}
 
@@ -858,6 +886,15 @@ public class Controller {
 	 */
 	public void arbolMSTKruskalC1() {
 		// TODO Auto-generated method stub
+		grafo3.crearTablas();
+		KruskalMST k= new KruskalMST(grafo3);
+		Iterable<Edge<Long, String, Double>> edgs = k.edges();
+		Iterator<Edge<Long, String, Double>> it = edgs.iterator();
+		while(it.hasNext())
+		{
+			System.out.println(it.next());
+		}
+		System.out.println("El peso total del arbol es de "+k.weight());
 
 	}
 
@@ -867,6 +904,7 @@ public class Controller {
 	 */
 	public void arbolMSTPrimC2() {
 		// TODO Auto-generated method stub
+		grafo3.crearTablas();
 		PrimMST p=new PrimMST(grafo3);
 		Iterable<Edge<Long,String,Double>> pa=p.edges();
 		Iterator<Edge<Long, String, Double>> i = pa.iterator();
@@ -882,7 +920,8 @@ public class Controller {
 	 * Requerimiento 3C: Calcular los caminos de costo m�nimo con criterio distancia que conecten los v�rtices resultado
 	 * de la aproximaci�n de las ubicaciones de la cuadricula N x M encontrados en el punto 5.
 	 */
-	public void caminoCostoMinimoDijkstraC3() {
+	public void caminoCostoMinimoDijkstraC3() 
+	{
 		// TODO Auto-generated method stub
 
 	}
