@@ -108,7 +108,11 @@ public class Controller {
 
 	private Graph<Long, String, Double> grafoR2y9;
 
+	private Graph<Long, String, Double> grafoR8;
+
 	private Graph<Long,String,Double> grafo3;
+
+	private ArregloDinamico<Vertex<Long,String,Double>> cuadricula;
 
 
 	private Comparable[] muestraVertices;
@@ -129,6 +133,7 @@ public class Controller {
 		heap= new MaxHeapCP<>();
 		grafoR2y9= new Graph<Long, String, Double>();
 		grafo3= new Graph<>();
+		grafoR8= new Graph<>();
 	}
 	/**
 	 * Metodo encargado de ejecutar los  requerimientos segun la opcion indicada por el usuario
@@ -536,6 +541,7 @@ public class Controller {
 
 			JSONParser parser = new JSONParser();
 			JSONArray a = (JSONArray) parser.parse(new FileReader(rutaArchivo));
+			int cantidadInfracciones=0;
 			for (Object o : a)
 			{
 				JSONObject actual = (JSONObject) o;
@@ -551,6 +557,8 @@ public class Controller {
 					String i = it.next();
 					ar.agregar(i);
 				}
+				cantidadInfracciones+=ar.darTamano();
+
 				JSONArray ja2= (JSONArray) actual.get("adj");
 				Iterator <String> it2 = ja2.iterator();
 				Bag<Long> ar2 = new Bag<>();
@@ -559,10 +567,11 @@ public class Controller {
 					String i = it2.next();
 					ar2.add(Long.parseLong(i));
 				}
-
 				grafo.addVertex(Long.parseLong(id), lat+"|"+lon,ar,ar2);
 
 				grafoR2y9.addVertex(Long.parseLong(id), lat+"|"+lon,ar,ar2);
+
+				grafoR8.addVertex(Long.parseLong(id), lat+"|"+lon,ar,ar2);
 
 				for(Long adj:ar2)
 				{
@@ -570,6 +579,9 @@ public class Controller {
 
 					Vertex<Long, String, Double> inicio = grafoR2y9.getV().get(Long.parseLong(id));
 					grafoR2y9.addDirectedEdge(Long.parseLong(id), adj, inicio.getCantidadInfracciones());
+
+					grafoR8.addDirectedEdge(Long.parseLong(id), adj, 0.0);
+
 				}
 				heap.agregar(new Vertex<Long, String, Double>(Long.parseLong(id), lat+"|"+lon, ar,ar2));
 				arregloIdsGrafo.agregar(Long.parseLong(id));
@@ -577,8 +589,6 @@ public class Controller {
 			SeparateChaining<Long, ArregloDinamico<Edge<Long, String, Double>>> ed = grafo.getEdges();
 			Iterable<Long> ittt = ed.keys();
 			Iterator<Long> it2 = ittt.iterator();
-			int suma=0;
-			int contador=0;
 			while(it2.hasNext())
 			{
 				Long t=it2.next();//indice vertice inicio
@@ -591,23 +601,14 @@ public class Controller {
 					Vertex<Long, String, Double> r2 = grafo.getV().get(idFin);
 					double peso= haversine(Double.parseDouble(r.getLatitud()), Double.parseDouble(r.getLongitud()), Double.parseDouble(r2.getLatitud()), Double.parseDouble(r2.getLongitud()));
 					grafo.setInfoEdge(t, idFin, peso);
-					double lat=Double.parseDouble(r.getLatitud())-Double.parseDouble(r2.getLatitud());
-					double lon=Double.parseDouble(r.getLongitud())-Double.parseDouble(r2.getLongitud());
-					double lat2=lat*lat;
-					double lon2=lon*lon;
-					double d=Math.sqrt(lat2+lon2);
-					suma+=d;
-
-					contador++;
+					grafoR8.setInfoEdge(t, idFin, peso);
 				}
 			}
-			System.out.println("Suma "+suma);
-			System.out.println("Contador "+contador);
-			double promedio = suma/contador;
-			System.out.println("Promedio "+promedio);
+			System.out.println("Se cargaron "+cantidadInfracciones+" infracciones.");
 			System.out.println("Vertices cargados "+grafo.V());
 			System.out.println("Arcos cargados "+grafo.E());
 			System.out.println("Grafo Dirigido tiene "+grafoR2y9.V()+" vertices y "+grafoR2y9.E()+" arcos.");
+			System.out.println("Grafo Dirigido 8 tiene "+grafoR8.V()+" vertices y "+grafoR8.E()+" arcos.");
 		} 
 		catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -620,37 +621,6 @@ public class Controller {
 			e.printStackTrace();
 		}
 	}		
-	public Comparable<VOMovingViolations> [ ] generarMuestraVertices( int n )
-	{
-		muestraVertices = new Comparable[ n ];
-		// TODO Llenar la muestra aleatoria con los datos guardados en la estructura de datos
-		Iterator<Long> it = grafo.getV().keys();
-		int pos=0;
-		while(it.hasNext())
-		{
-			Long a = it.next();
-			Vertex<Long, String, Double> v = grafo.getV().get(a);
-			muestraVertices[pos] = v;
-			pos++;
-		}
-		return muestraVertices;
-	}
-	public Comparable<VOMovingViolations> [ ] generarMuestra( int n )
-	{
-		muestra = new Comparable[ n ];
-		// TODO Llenar la muestra aleatoria con los datos guardados en la estructura de datos
-		ArregloDinamico<VOMovingViolations> e = arreglo;
-
-		int pos=0;
-		while(pos<n)
-		{
-			muestra[pos] = e.darElem(pos);
-			pos++;
-		}
-		return muestra;
-	}
-
-
 	// TODO El tipo de retorno de los m�todos puede ajustarse seg�n la conveniencia
 	/**
 	 * Requerimiento 1A: Encontrar el camino de costo m�nimo para un viaje entre dos ubicaciones geogr�ficas.
@@ -663,11 +633,28 @@ public class Controller {
 		DijkstraSP d= new DijkstraSP(grafoR2y9, idVertice1);
 		Iterable<Edge<Long, String, Double>> p = d.pathTo(grafoR2y9.getIndiceT().get(idVertice2));
 		Iterator<Edge<Long, String, Double>> i = p.iterator();
+		long id2=0;
+		String lon2="";
+		String lat2="";
+		int infras=0;
+		double kms=0;
 		while(i.hasNext())
 		{
 			Edge<Long,String,Double> e = i.next();
-			System.out.println("Inicio "+e.getStartVertexId()+" Final "+e.getEndVertexId());
+			long id = e.getStartVertexId();
+			String lon=grafo.getV().get((long)e.getStartVertexId()).getLongitud();
+			String lat=grafo.getV().get((long)e.getStartVertexId()).getLatitud();
+			infras+=grafo.getV().get((long)e.getStartVertexId()).getCantidadInfracciones();
+			id2 = e.getEndVertexId();
+			lon2=grafo.getV().get((long)e.getEndVertexId()).getLongitud();
+			lat2=grafo.getV().get((long)e.getEndVertexId()).getLatitud();
+			kms += grafo.getInfoEdge(id, id2);
+
+			System.out.println("Vertice con id "+id+ " con latitud "+lat+" con longitud "+lon);
 		}
+		System.out.println("Vertice con id "+id2+ " con latitud "+lat2+" con longitud "+lon2);
+		System.out.println("Total de infracciones en el camino: "+infras);
+		System.out.println("Cantidad aproximada de kms: "+kms);
 	}
 
 	// TODO El tipo de retorno de los m�todos puede ajustarse seg�n la conveniencia
@@ -678,6 +665,7 @@ public class Controller {
 	 */
 	public void mayorNumeroVerticesA2(int n) {
 		// TODO Auto-generated method stub
+		grafo3= new Graph<>();
 		ArregloDinamico<Vertex<Long, String, Double>> mayores= new ArregloDinamico<>(20);
 		for(int i=0;i<n;i++)
 		{
@@ -733,14 +721,35 @@ public class Controller {
 				h.agregar(d.darBagDeVertices());
 			}
 		}
-		Bag<Long> max = h.delMax();
-		for(Long d: max)
+		int c=0;
+		while(h.darNumElementos()>0)
 		{
-			String lat=linGrande.get(d).getLatitud();
-			String lon=linGrande.get(d).getLongitud();
-			ArregloDinamico<String> arr = linGrande.get(d).getInfracciones();
-			Bag<Long> b = linGrande.get(d).getIds();
-			grafo3.addVertex(d, lat+"|"+lon, arr, b);
+			if(c==0)
+			{
+				Bag<Long> max = h.delMax();
+				System.out.println("Componente conexa numero "+(c+1));
+				for(Long d: max)
+				{
+					System.out.println(d);
+					String lat=linGrande.get(d).getLatitud();
+					String lon=linGrande.get(d).getLongitud();
+					ArregloDinamico<String> arr = linGrande.get(d).getInfracciones();
+					Bag<Long> b = linGrande.get(d).getIds();
+					grafo3.addVertex(d, lat+"|"+lon, arr, b);
+				}
+			}
+			else
+			{
+				Bag<Long> m = h.delMax();
+				System.out.println("Componente conexa numero "+(c+1));
+				for(long id:m)
+				{
+					System.out.println(id);
+				}
+
+			}
+			c++;
+
 		}
 		LinearProbing<Long, Vertex<Long, String, Double>> ie = grafo3.getV();
 		Iterator<Long> i = ie.keys();
@@ -761,7 +770,6 @@ public class Controller {
 		}
 		System.out.println("Vertices "+grafo3.V());
 		System.out.println("Arcos "+grafo3.E());
-		//en el bag estan los vertices del componente conexo mayor
 		System.out.println("Numeros de componentes: "+componentes);
 	}
 	public  double haversine(double lat1, double lon1, double lat2, double lon2) {
@@ -785,9 +793,22 @@ public class Controller {
 	public void caminoLongitudMinimoaB1(long idVertice1, long idVertice2) {
 		BFS b = new BFS<>(grafo, idVertice1);
 		Iterable r = b.pathTo(idVertice2);
+		int c=0;
+		ArregloDinamico<Long> v= new ArregloDinamico<>(30);
 		for (Object object : r) {
-			System.out.println(object);
+			System.out.println(grafo.getV().get((long)object).darInfoVertice());
+			v.agregar((long)object);
+			c++;
 		}
+		System.out.println("Cantidad total de vertices: "+c);
+		double kms=0;
+		for(int i=0;i<v.darTamano()-1;i++)
+		{
+			Vertex<Long, String, Double> v1 = grafo.getV().get(v.darElem(i));
+			Vertex<Long, String, Double> v2 = grafo.getV().get(v.darElem(i+1));
+			kms+=haversine(Double.parseDouble(v1.getLatitud()), Double.parseDouble(v1.getLongitud()), Double.parseDouble(v2.getLatitud()), Double.parseDouble(v2.getLongitud()));
+		}
+		System.out.println("Total de kms: "+kms);
 	}
 
 	// TODO El tipo de retorno de los m�todos puede ajustarse seg�n la conveniencia
@@ -824,12 +845,9 @@ public class Controller {
 			}
 			lat+=avancesLat;
 		}
-		System.out.println("Tama�o arreglo de puntos "+puntos.darTamano());
 		LinearProbing<Long, Vertex<Long,String, Double>> lista= grafo.getV();
 		ArregloDinamico<Vertex<Long, String, Double>> cercanos=new ArregloDinamico<>(20);
 		LinearProbing<Double, Long> distanciaVertice=new LinearProbing<>(300);
-		ArrayList<Double> a= new ArrayList<>();
-		int c1=0;
 		for(int i=0;i<puntos.darTamano();i++)
 		{
 			String p = puntos.darElem(i);
@@ -847,33 +865,24 @@ public class Controller {
 				Vertex<Long, String, Double> v = lista.get(is);
 				double l1 = Double.parseDouble(v.getLatitud());
 				double l2 = Double.parseDouble(v.getLongitud());
-				if(l1<=latMax)
+				if(l1<=latMax && l1>=latMin && l2<=lonMax && l2>=lonMin)
 				{
-					if(l1>=latMin)
-					{
-						if(l2<=lonMax)
-						{
-							if(l2>=lonMin)
-							{
-								double n= haversine(laPunto, loPunto, l1, l2);
-								heaps.agregar(n);
-								distanciaVertice.put(n, v.getId());
-							}
 
-						}
+					double n= haversine(laPunto, loPunto, l1, l2);
+					heaps.agregar(n);
+					distanciaVertice.put(n, v.getId());
 
-					}
 
 				}
 			}
 			double c = heaps.delMax();
 			Long id=distanciaVertice.get(c);
 			Vertex<Long, String, Double> v = lista.get(id);
-
-			cercanos.agregar(v);
-
+			if(cercanos.contains(v)==false)
+				cercanos.agregar(v);
 		}
 		System.out.println("Vertices cercanos "+cercanos.darTamano());
+		cuadricula=cercanos;
 		for(int i=0;i<cercanos.darTamano();i++)
 		{
 			System.out.println(cercanos.darElem(i).darInfoVertice());
@@ -885,7 +894,6 @@ public class Controller {
 	 * Requerimiento 1C:  Calcular un �rbol de expansi�n m�nima (MST) con criterio distancia, utilizando el algoritmo de Kruskal.
 	 */
 	public void arbolMSTKruskalC1() {
-		// TODO Auto-generated method stub
 		grafo3.crearTablas();
 		KruskalMST k= new KruskalMST(grafo3);
 		Iterable<Edge<Long, String, Double>> edgs = k.edges();
@@ -923,7 +931,31 @@ public class Controller {
 	public void caminoCostoMinimoDijkstraC3() 
 	{
 		// TODO Auto-generated method stub
+		grafoR8.crearTablas();
+		DijkstraSP d= null;
+		Vertex<Long, String, Double> e = null;
 
+
+		for(int i=0;i<cuadricula.darTamano();i++)
+		{
+			if(i==0)
+			{
+				e = cuadricula.darElem(i);
+				d= new DijkstraSP(grafoR8, e.getId());
+			}
+			else
+			{
+				e = cuadricula.darElem(i);
+				Iterable<Edge<Long, String, Double>> ed = d.pathTo(grafoR8.getIndiceT().get(e.getId()));
+				Iterator<Edge<Long, String, Double>> it = ed.iterator();
+				while(it.hasNext())
+				{
+					Edge<Long, String, Double> n = it.next();
+					System.out.println(n.toString());
+				}
+			}
+			System.out.println("----------------");
+		}
 	}
 
 	// TODO El tipo de retorno de los m�todos puede ajustarse seg�n la conveniencia

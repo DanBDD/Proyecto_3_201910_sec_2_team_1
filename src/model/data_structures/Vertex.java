@@ -27,7 +27,7 @@ public class Vertex<K extends Comparable<K>,V,D> implements Comparable<Vertex<K,
 		ids=ar2;
 	}
 	public String darInfoVertice(){
-		return "Identificador: " + id + "  Latitud " + latitud + "  Longitud " + longitud;
+		return "Identificador: " + id + "  Latitud " + latitud + "  Longitud " + longitud+" Cantidad de infracciones "+cantidadInfracciones;
 	}
 	public K getId(){
 		return id;
