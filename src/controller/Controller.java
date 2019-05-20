@@ -11,8 +11,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import com.opencsv.CSVReader;
-import com.sun.xml.internal.bind.v2.runtime.output.StAXExStreamWriterOutput;
-
 import model.data_structures.ArregloDinamico;
 import model.data_structures.BFS;
 import model.data_structures.Bag;
@@ -655,6 +653,8 @@ public class Controller {
 		System.out.println("Vertice con id "+id2+ " con latitud "+lat2+" con longitud "+lon2);
 		System.out.println("Total de infracciones en el camino: "+infras);
 		System.out.println("Cantidad aproximada de kms: "+kms);
+		MapBoxDraw map2 = new MapBoxDraw("./docs/req1.html", p, grafoR2y9);
+		map2.drawIterable();
 	}
 
 	// TODO El tipo de retorno de los m�todos puede ajustarse seg�n la conveniencia
@@ -809,6 +809,8 @@ public class Controller {
 			kms+=haversine(Double.parseDouble(v1.getLatitud()), Double.parseDouble(v1.getLongitud()), Double.parseDouble(v2.getLatitud()), Double.parseDouble(v2.getLongitud()));
 		}
 		System.out.println("Total de kms: "+kms);
+		MapBoxDrawV map4 = new MapBoxDrawV("./docs/req4.html", r, grafo);
+		map4.draw();
 	}
 
 	// TODO El tipo de retorno de los m�todos puede ajustarse seg�n la conveniencia
@@ -883,10 +885,13 @@ public class Controller {
 		}
 		System.out.println("Vertices cercanos "+cercanos.darTamano());
 		cuadricula=cercanos;
+		
 		for(int i=0;i<cercanos.darTamano();i++)
 		{
 			System.out.println(cercanos.darElem(i).darInfoVertice());
 		}
+		MapBoxDraw map5 = new MapBoxDraw("./docs/req5.html", cuadricula);
+		map5.drawVertices();
 	}
 
 	// TODO El tipo de retorno de los m�todos puede ajustarse seg�n la conveniencia
@@ -903,7 +908,8 @@ public class Controller {
 			System.out.println(it.next());
 		}
 		System.out.println("El peso total del arbol es de "+k.weight());
-
+		MapBoxDraw map6 = new MapBoxDraw("./docs/req6.html", edgs,grafo3);
+		map6.drawIterable();
 	}
 
 	// TODO El tipo de retorno de los m�todos puede ajustarse seg�n la conveniencia
@@ -921,6 +927,8 @@ public class Controller {
 			System.out.println(i.next());
 		}
 		System.out.println("El peso total del arbol es de "+p.weight());
+		MapBoxDraw map7 = new MapBoxDraw("./docs/req7.html", pa,grafo3);
+		map7.drawIterable();
 	}
 
 	// TODO El tipo de retorno de los m�todos puede ajustarse seg�n la conveniencia
