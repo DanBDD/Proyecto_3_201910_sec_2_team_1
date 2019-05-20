@@ -835,6 +835,8 @@ public class Controller {
 		double difLon= Math.abs(lonMax-lonMin);
 		double avancesLon=difLon/(filas-1);
 		double avancesLat=difLat/(columnas-1);
+//		double avancesLon=difLon/(filas);
+//		double avancesLat=difLat/(columnas);
 		ArregloDinamico<String> puntos= new ArregloDinamico<>(200);
 		double lat=latMin;
 		while(lat<=latMax)
@@ -853,6 +855,7 @@ public class Controller {
 		for(int i=0;i<puntos.darTamano();i++)
 		{
 			String p = puntos.darElem(i);
+			System.out.println(p);
 			int index=p.indexOf("|");
 			String la=p.substring(0, index);
 			int index2=index+1;

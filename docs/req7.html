@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=utf-8 />
+<title>Grafo generado</title>
+<meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+<script src='https://api.mapbox.com/mapbox.js/v3.1.1/mapbox.js'></script>
+<link href='https://api.mapbox.com/mapbox.js/v3.1.1/mapbox.css' rel='stylesheet' /> 
+<style>
+ body { margin:0; padding:0; }
+#map { position:absolute; top:0; bottom:0; width:100%; }
+</style>
+</head>
+<body>
+<div id='map'>
+</div>
+<script>
+L.mapbox.accessToken = 'pk.eyJ1IjoiZ2FsMTE3IiwiYSI6ImNqdjYwdTc4YzAwYmg0ZG5seWdtdWh2cmYifQ.UZEaapqtmO8s8esHG99z4A';
+var map = L.mapbox.map('map', 'mapbox.streets').setView([38.9072,77.0369], 17);
+var calozanoElMejor = [[38.8847, -77.0542 ],[38.9135,-77.0542]];
+map.fitBounds(calozanoElMejor);
+var polyline_options = {color: '#ff2fc6'}; 
+var line_points0 = [ [ 38.9002009, -76.976219],[38.900199, -76.975698] ];
+L.polyline(line_points0, polyline_options).addTo(map);
+var line_points1 = [ [ 38.9005732, -76.97622],[38.9002009, -76.976219] ];
+L.polyline(line_points1, polyline_options).addTo(map);
+var line_points2 = [ [ 38.9002009, -76.976219],[38.9002054, -76.9774934] ];
+L.polyline(line_points2, polyline_options).addTo(map);
+</script>
+</body>
+</html>
